@@ -1,12 +1,4 @@
 'use client';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,28 +11,13 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   CircleUser,
-  Home,
   LogOut,
   Settings,
 } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import React from 'react';
 import { Logo } from './logo';
 
-const segmentTranslations: { [key: string]: string } = {
-  dashboard: 'Panel',
-  campaigns: 'Campañas',
-  new: 'Nueva',
-};
-
-function translateSegment(segment: string): string {
-  return segmentTranslations[segment] || segment;
-}
-
 export function Header() {
-  const pathname = usePathname();
-  const pathSegments = pathname.split('/').filter(Boolean);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -50,36 +27,6 @@ export function Header() {
          <Logo />
       </div>
 
-      <Breadcrumb className="hidden md:flex ml-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/dashboard">
-                <Home className="h-4 w-4" />
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          {pathSegments.map((segment, index) => {
-            const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
-            const isLast = index === pathSegments.length - 1;
-            const translatedSegment = translateSegment(segment);
-            return (
-              <React.Fragment key={href}>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  {isLast ? (
-                    <BreadcrumbPage className="capitalize">{translatedSegment}</BreadcrumbPage>
-                  ) : (
-                    <BreadcrumbLink asChild>
-                      <Link href={href} className="capitalize">{translatedSegment}</Link>
-                    </BreadcrumbLink>
-                  )}
-                </BreadcrumbItem>
-              </React.Fragment>
-            );
-          })}
-        </BreadcrumbList>
-      </Breadcrumb>
       <div className="relative ml-auto flex-1 md:grow-0">
         {/* Can add a search bar here later */}
       </div>
