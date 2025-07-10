@@ -16,6 +16,7 @@ import {
   PlusCircle,
   Settings,
   LifeBuoy,
+  Home,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,7 +26,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <Sidebar>
           <SidebarHeader>
@@ -38,7 +39,7 @@ export default function DashboardLayout({
                   asChild
                   tooltip={{ children: 'Panel' }}
                 >
-                   <Link href="/dashboard"><LayoutDashboard />Panel</Link>
+                   <Link href="/dashboard"><Home />Panel</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
