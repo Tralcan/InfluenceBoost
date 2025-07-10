@@ -46,6 +46,7 @@ export function NewCampaignForm() {
       description: '',
       discount: '',
       imageUrl: '',
+      maxInfluencers: undefined,
     },
   });
 
@@ -184,7 +185,7 @@ export function NewCampaignForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Máx. Influencers (Opcional)</FormLabel>
-                      <FormControl><Input type="number" placeholder="ej., 100" {...field} onChange={event => field.onChange(+event.target.value)} /></FormControl>
+                      <FormControl><Input type="number" placeholder="ej., 100" {...field} value={field.value ?? ''} onChange={event => field.onChange(+event.target.value)} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
