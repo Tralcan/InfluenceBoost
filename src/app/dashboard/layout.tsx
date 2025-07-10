@@ -1,5 +1,4 @@
 import { Header } from '@/components/header';
-import { BreadcrumbHeader } from '@/components/breadcrumb-header';
 import {
   SidebarProvider,
   Sidebar,
@@ -75,7 +74,6 @@ export default function DashboardLayout({
       </Sidebar>
       <SidebarInset>
         <Header />
-        <BreadcrumbHeader />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           {children}
         </main>
