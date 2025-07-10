@@ -68,7 +68,7 @@ export function NewCampaignForm() {
       end_date: formatISO(data.dateRange.to),
       discount: data.discount,
       max_influencers: data.max_influencers || null,
-      image_url: data.image_url || `https://placehold.co/1200x630.png`,
+      image_url: data.image_url || '', // Enviar cadena vacía si no hay imagen
     };
 
     const result = await createCampaignAction(campaignData);
@@ -197,6 +197,7 @@ export function NewCampaignForm() {
                     <FormItem>
                       <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>
                       <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} /></FormControl>
+                      <FormDescription>Si se deja vacío, la IA generará una imagen.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

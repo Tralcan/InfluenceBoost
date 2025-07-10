@@ -30,12 +30,10 @@ const initialState = {
   error: null,
 };
 
-
 export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
   const router = useRouter();
   const { toast } = useToast();
-  const action = registerInfluencerAction.bind(null, campaign.id);
-  const [state, formAction] = useFormState(action, initialState);
+  const [state, formAction] = useFormState(registerInfluencerAction.bind(null, campaign.id), initialState);
 
   useEffect(() => {
     if (state.success && state.code) {

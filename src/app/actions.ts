@@ -25,8 +25,8 @@ export async function createCampaignAction(
   try {
     let finalData = { ...data };
     
-    // Si no se proporciona una URL de imagen, generarla con IA
-    if (!finalData.image_url || finalData.image_url.startsWith('https://placehold.co')) {
+    // Si no se proporciona una URL de imagen o es la de placeholder, generarla con IA
+    if (!finalData.image_url) {
       console.log("Generating AI image for campaign...");
       const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
       finalData.image_url = imageResult.imageUrl;
@@ -46,6 +46,7 @@ export async function createCampaignAction(
 
 export async function registerInfluencerAction(
     campaignId: string,
+    prevState: any,
     formData: FormData
 ) {
     const name = formData.get('name') as string;
@@ -59,13 +60,13 @@ export async function registerInfluencerAction(
     try {
         const newInfluencer = await registerInfluencer(campaignId, { name, email, social_media: socialMedia });
         revalidatePath(`/dashboard/campaigns/${campaignId}`);
-        // No redirigir directamente aquí. Devolver el código para que el cliente redirija.
-        return { success: true, code: newInfluencer.generated_code };
+        // Devolvemos el código para que el cliente redirija.
+        return { success: true, code: newInfluencer.generated_code, error: null };
     } catch (error) {
         console.error('Error registering influencer:', error);
         if (error instanceof Error) {
-            return { success: false, error: error.message };
+            return { success: false, error: error.message, code: null };
         }
-        return { success: false, error: 'No se pudo registrar.' };
+        return { success: false, error: 'No se pudo registrar.', code: null };
     }
 }
