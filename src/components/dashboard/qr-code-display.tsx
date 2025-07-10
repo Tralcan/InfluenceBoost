@@ -13,7 +13,7 @@ interface QRCodeDisplayProps {
 
 export function QRCodeDisplay({ campaignName, campaignId }: QRCodeDisplayProps) {
   const { toast } = useToast();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://influenceboost.vercel.app';
   const uniqueUrl = `/campaign/${campaignId}`;
   const fullUrl = `${baseUrl}${uniqueUrl}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}`;
