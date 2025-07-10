@@ -1,10 +1,10 @@
-import type { Campaign } from '@/lib/types';
+import type { CampaignWithInfluencers } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Hash, Star } from 'lucide-react';
 
-export function CampaignStats({ campaign }: { campaign: Campaign }) {
+export function CampaignStats({ campaign }: { campaign: CampaignWithInfluencers }) {
   const totalUses = campaign.influencers.reduce((acc, inf) => acc + inf.uses, 0);
-  const mostEffectiveInfluencer = campaign.influencers.sort((a, b) => b.uses - a.uses)[0];
+  const mostEffectiveInfluencer = [...campaign.influencers].sort((a, b) => b.uses - a.uses)[0];
 
   return (
     <div className="grid gap-4 md:grid-cols-3">

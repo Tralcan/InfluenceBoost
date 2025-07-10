@@ -1,10 +1,10 @@
 'use server';
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
-import { createCampaign as dbCreateCampaign, registerInfluencer as dbRegisterInfluencer } from '@/lib/mock-db';
-import { Campaign } from '@/lib/types';
+import { createCampaign, registerInfluencer } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import type { Campaign } from '@/lib/types';
 
 export async function suggestDiscountAction(
   input: SuggestDiscountInput
@@ -19,10 +19,10 @@ export async function suggestDiscountAction(
 }
 
 export async function createCampaignAction(
-  data: Omit<Campaign, 'id' | 'uniqueUrl' | 'qrCodeUrl' | 'influencers' | 'companyId'>
+  data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   try {
-    const newCampaign = await dbCreateCampaign(data);
+    const newCampaign = await createCampaign(data);
     revalidatePath('/dashboard');
     return { success: true, data: newCampaign };
   } catch (error) {
@@ -44,11 +44,14 @@ export async function registerInfluencerAction(
     }
 
     try {
-        const newInfluencer = await dbRegisterInfluencer(campaignId, { name, email, socialMedia });
+        const newInfluencer = await registerInfluencer(campaignId, { name, email, social_media: socialMedia });
         revalidatePath(`/dashboard/campaigns/${campaignId}`);
-        redirect(`/campaign/${campaignId}/success?code=${newInfluencer.generatedCode}`);
+        redirect(`/campaign/${campaignId}/success?code=${newInfluencer.generated_code}`);
     } catch (error) {
         console.error('Error registering influencer:', error);
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
         return { success: false, error: 'No se pudo registrar.' };
     }
 }

@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, formatISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -28,8 +28,8 @@ const newCampaignSchema = z.object({
     to: z.date({ required_error: 'Se requiere una fecha de finalización.' }),
   }),
   discount: z.string().min(1, { message: 'Los detalles del descuento son obligatorios.' }),
-  maxInfluencers: z.coerce.number().positive().optional(),
-  imageUrl: z.string().url({ message: 'Por favor, introduce una URL válida.' }).optional().or(z.literal('')),
+  max_influencers: z.coerce.number().positive().optional(),
+  image_url: z.string().url({ message: 'Por favor, introduce una URL válida.' }).optional().or(z.literal('')),
 });
 
 type NewCampaignFormValues = z.infer<typeof newCampaignSchema>;
@@ -45,8 +45,8 @@ export function NewCampaignForm() {
       name: '',
       description: '',
       discount: '',
-      imageUrl: '',
-      maxInfluencers: undefined,
+      image_url: '',
+      max_influencers: 100,
     },
   });
 
@@ -64,11 +64,11 @@ export function NewCampaignForm() {
     const campaignData = {
       name: data.name,
       description: data.description,
-      startDate: data.dateRange.from,
-      endDate: data.dateRange.to,
+      start_date: formatISO(data.dateRange.from),
+      end_date: formatISO(data.dateRange.to),
       discount: data.discount,
-      maxInfluencers: data.maxInfluencers || null,
-      imageUrl: data.imageUrl || `https://placehold.co/1200x630.png`,
+      max_influencers: data.max_influencers || null,
+      image_url: data.image_url || `https://placehold.co/1200x630.png`,
     };
 
     const result = await createCampaignAction(campaignData);
@@ -181,7 +181,7 @@ export function NewCampaignForm() {
                 />
                  <FormField
                   control={form.control}
-                  name="maxInfluencers"
+                  name="max_influencers"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Máx. Influencers (Opcional)</FormLabel>
@@ -192,7 +192,7 @@ export function NewCampaignForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="imageUrl"
+                  name="image_url"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>

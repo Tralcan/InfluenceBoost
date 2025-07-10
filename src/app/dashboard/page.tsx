@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { getCampaigns } from '@/lib/mock-db';
+import { getCampaigns } from '@/lib/supabase/queries';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { CampaignCard } from '@/components/dashboard/campaign-card';

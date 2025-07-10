@@ -4,36 +4,35 @@ export type Company = {
   email: string;
 };
 
+// This represents the structure in the 'influencers' table
 export type Influencer = {
-  id: string;
+  id: string; // uuid, primary key
   name: string;
   email: string;
-  socialMedia: string;
-  campaignId: string;
+  social_media: string;
+  campaign_id: string; // uuid, foreign key to campaigns
+  generated_code: string;
+  uses: number; // default 0
+  points: number; // default 0
+  created_at: string;
 };
 
+// This represents the structure in the 'campaigns' table
 export type Campaign = {
-  id: string;
-  companyId: string;
+  id: string; // uuid, primary key
+  company_id: string; // mock for now
   name: string;
   description: string;
-  startDate: Date;
-  endDate: Date;
+  start_date: string; // ISO 8601 string
+  end_date: string; // ISO 8601 string
   discount: string;
-  maxInfluencers: number | null;
-  imageUrl: string;
-  uniqueUrl: string;
-  qrCodeUrl: string;
-  influencers: InfluencerCampaign[];
+  max_influencers: number | null;
+  image_url: string;
+  created_at: string;
 };
 
-export type InfluencerCampaign = {
-  id: string;
-  influencerId: string;
-  campaignId: string;
-  name: string;
-  socialMedia: string;
-  generatedCode: string;
-  uses: number;
-  points: number;
+
+// This is a combined type for UI components that need campaign data with its influencers
+export type CampaignWithInfluencers = Campaign & {
+  influencers: Influencer[];
 };

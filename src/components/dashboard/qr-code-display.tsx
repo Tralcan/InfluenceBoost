@@ -8,13 +8,15 @@ import { useToast } from '@/hooks/use-toast';
 
 interface QRCodeDisplayProps {
   campaignName: string;
-  uniqueUrl: string;
-  qrCodeUrl: string;
+  campaignId: string;
 }
 
-export function QRCodeDisplay({ campaignName, uniqueUrl, qrCodeUrl }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ campaignName, campaignId }: QRCodeDisplayProps) {
   const { toast } = useToast();
-  const fullUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}${uniqueUrl}`;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const uniqueUrl = `/campaign/${campaignId}`;
+  const fullUrl = `${baseUrl}${uniqueUrl}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(fullUrl)}`;
 
   const copyUrl = () => {
     navigator.clipboard.writeText(fullUrl);

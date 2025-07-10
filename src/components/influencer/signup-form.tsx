@@ -25,11 +25,11 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
   return (
     <Card className="w-full max-w-lg mx-auto">
       <CardHeader className="text-center space-y-4">
-        {campaign.imageUrl && (
+        {campaign.image_url && (
             <div className="aspect-video overflow-hidden rounded-lg border">
                 <Image
                     data-ai-hint="company logo"
-                    src={campaign.imageUrl}
+                    src={campaign.image_url}
                     alt={campaign.name}
                     width={1200}
                     height={630}

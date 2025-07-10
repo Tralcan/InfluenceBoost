@@ -1,8 +1,8 @@
-import { getCampaignById } from '@/lib/mock-db';
+import { getCampaignById } from '@/lib/supabase/queries';
 import { notFound } from 'next/navigation';
 import { InfluencerSignupForm } from '@/components/influencer/signup-form';
 import { Logo } from '@/components/logo';
-import { isPast } from 'date-fns';
+import { isPast, parseISO } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ export default async function InfluencerCampaignPage({ params }: { params: { id:
     notFound();
   }
 
-  const isCampaignOver = isPast(campaign.endDate);
+  const isCampaignOver = isPast(parseISO(campaign.end_date));
 
   return (
     <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center p-4 sm:p-6">

@@ -1,4 +1,5 @@
-import type { InfluencerCampaign } from '@/lib/types';
+'use client'
+import type { Influencer } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -11,12 +12,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
 import { Copy } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
 
-export function InfluencersTable({ influencers }: { influencers: InfluencerCampaign[] }) {
+export function InfluencersTable({ influencers }: { influencers: Influencer[] }) {
+  const { toast } = useToast();
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // Opcionalmente, agregar una notificación toast aquí
+    toast({
+        title: "¡Código copiado!",
+        description: "El código del influencer se ha copiado a tu portapapeles."
+    })
   }
   
   if (influencers.length === 0) {
@@ -54,11 +60,11 @@ export function InfluencersTable({ influencers }: { influencers: InfluencerCampa
             {influencers.sort((a,b) => b.points - a.points).map((influencer) => (
               <TableRow key={influencer.id}>
                 <TableCell className="font-medium">{influencer.name}</TableCell>
-                <TableCell>{influencer.socialMedia}</TableCell>
+                <TableCell>{influencer.social_media}</TableCell>
                 <TableCell>
                   <div className='flex items-center gap-2'>
-                    <Badge variant="outline">{influencer.generatedCode}</Badge>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(influencer.generatedCode)}>
+                    <Badge variant="outline">{influencer.generated_code}</Badge>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(influencer.generated_code)}>
                         <Copy className="h-3 w-3" />
                     </Button>
                   </div>

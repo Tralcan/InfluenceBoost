@@ -1,4 +1,4 @@
-import type { Campaign } from '@/lib/types';
+import type { CampaignWithInfluencers } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -11,9 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Calendar, Users, Percent } from 'lucide-react';
 import Link from 'next/link';
-import { format, isPast, isFuture } from 'date-fns';
+import { format, isPast, isFuture, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import Image from 'next/image';
 
 function CampaignStatusBadge({ startDate, endDate }: { startDate: Date; endDate: Date }) {
   const now = new Date();
@@ -26,17 +25,20 @@ function CampaignStatusBadge({ startDate, endDate }: { startDate: Date; endDate:
   return <Badge className="bg-green-500 hover:bg-green-600 text-white">Activa</Badge>;
 }
 
-export function CampaignCard({ campaign }: { campaign: Campaign }) {
+export function CampaignCard({ campaign }: { campaign: CampaignWithInfluencers }) {
+  const startDate = parseISO(campaign.start_date);
+  const endDate = parseISO(campaign.end_date);
+  
   return (
     <Card className="flex flex-col h-full shadow-md hover:shadow-lg transition-shadow">
        <CardHeader>
         <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-lg leading-tight">{campaign.name}</CardTitle>
-            <CampaignStatusBadge startDate={campaign.startDate} endDate={campaign.endDate} />
+            <CampaignStatusBadge startDate={startDate} endDate={endDate} />
         </div>
         <CardDescription className="flex items-center gap-2 text-sm pt-1">
             <Calendar className="h-4 w-4" /> 
-            <span>{format(campaign.startDate, 'dd LLL, yyyy', { locale: es })} - {format(campaign.endDate, 'dd LLL, yyyy', { locale: es })}</span>
+            <span>{format(startDate, 'dd LLL, yyyy', { locale: es })} - {format(endDate, 'dd LLL, yyyy', { locale: es })}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow grid gap-4">

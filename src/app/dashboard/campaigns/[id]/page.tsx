@@ -1,11 +1,11 @@
-import { getCampaignById } from '@/lib/mock-db';
+import { getCampaignById } from '@/lib/supabase/queries';
 import { notFound } from 'next/navigation';
 import { CampaignStats } from '@/components/dashboard/campaign-stats';
 import { InfluencersTable } from '@/components/dashboard/influencers-table';
 import { QRCodeDisplay } from '@/components/dashboard/qr-code-display';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { format, isPast, isFuture } from 'date-fns';
+import { format, isPast, isFuture, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar, Percent } from 'lucide-react';
 
@@ -28,6 +28,9 @@ export default async function CampaignDetailsPage({ params }: { params: { id: st
     notFound();
   }
 
+  const startDate = parseISO(campaign.start_date);
+  const endDate = parseISO(campaign.end_date);
+
   return (
     <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
@@ -35,14 +38,14 @@ export default async function CampaignDetailsPage({ params }: { params: { id: st
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
                         <CardTitle className="text-2xl font-headline">{campaign.name}</CardTitle>
-                        <CampaignStatusBadge startDate={campaign.startDate} endDate={campaign.endDate} />
+                        <CampaignStatusBadge startDate={startDate} endDate={endDate} />
                     </div>
                     <CardDescription>{campaign.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        <span>{format(campaign.startDate, 'd MMM, yyyy', { locale: es })} - {format(campaign.endDate, 'd MMM, yyyy', { locale: es })}</span>
+                        <span>{format(startDate, 'd MMM, yyyy', { locale: es })} - {format(endDate, 'd MMM, yyyy', { locale: es })}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Percent className="h-4 w-4" />
@@ -57,8 +60,7 @@ export default async function CampaignDetailsPage({ params }: { params: { id: st
         <div className="lg:col-span-1">
             <QRCodeDisplay 
                 campaignName={campaign.name} 
-                uniqueUrl={campaign.uniqueUrl} 
-                qrCodeUrl={campaign.qrCodeUrl} 
+                campaignId={campaign.id}
             />
         </div>
     </div>
