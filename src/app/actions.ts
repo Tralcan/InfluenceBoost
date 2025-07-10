@@ -2,7 +2,7 @@
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
 import { generateCampaignImage } from '@/ai/flows/generate-campaign-image-flow';
-import { createCampaign, registerInfluencer } from '@/lib/supabase/queries';
+import { createCampaign, registerInfluencer, deleteCampaign } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { Campaign } from '@/lib/types';
@@ -24,43 +24,40 @@ export async function createCampaignAction(
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   console.log('DEBUG: Iniciando createCampaignAction con datos:', {
     ...data,
-    image_url: data.image_url ? `URL de longitud ${data.image_url.length}` : 'VACÍO'
+    image_url: data.image_url ? `URL proporcionada` : 'VACÍO'
   });
   
   try {
     let finalImageUrl = data.image_url;
 
-    // Explicitly check for an empty string to trigger AI generation
-    if (!finalImageUrl) {
+    if (finalImageUrl === '') {
       console.log("DEBUG: No se proporcionó URL de imagen. Activando la generación de imágenes de IA para la campaña:", data.name);
       try {
         const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
         
         if (imageResult && imageResult.imageUrl) {
-            console.log("DEBUG: Imagen de IA generada con éxito. Longitud de la URL:", imageResult.imageUrl.length);
+            console.log("DEBUG: Imagen de IA generada con éxito.");
             finalImageUrl = imageResult.imageUrl;
         } else {
             console.warn("DEBUG: La generación de imágenes de IA no devolvió una URL. Se usará una URL vacía.");
-            finalImageUrl = ''; // Ensure it's an empty string if generation fails
+            finalImageUrl = '';
         }
 
       } catch (genError) {
          console.error('DEBUG: Error generando la imagen de la campaña:', genError);
-         finalImageUrl = ''; // Fallback to empty string on error
+         finalImageUrl = '';
       }
     } else {
-        console.log("DEBUG: Se proporcionó una URL de imagen, se saltará la generación de IA:", finalImageUrl);
+        console.log("DEBUG: Se proporcionó una URL de imagen, se saltará la generación de IA.");
     }
 
     const campaignToCreate = {
         ...data,
-        image_url: finalImageUrl,
+        image_url: finalImageUrl || '', // Ensure it's never undefined
+        max_influencers: data.max_influencers === null || data.max_influencers === undefined ? 0 : data.max_influencers,
     };
     
-    console.log("DEBUG: Datos finales a guardar en la base de datos:", {
-        ...campaignToCreate,
-        image_url: `URL de longitud ${campaignToCreate.image_url.length}` // Don't log the full data URI
-    });
+    console.log("DEBUG: Datos finales a guardar en la base de datos (longitud de URL):", campaignToCreate.image_url.length);
 
     const newCampaign = await createCampaign(campaignToCreate);
     revalidatePath('/dashboard');
@@ -91,7 +88,6 @@ export async function registerInfluencerAction(
     try {
         const newInfluencer = await registerInfluencer(campaignId, { name, email, social_media: socialMedia });
         revalidatePath(`/dashboard/campaigns/${campaignId}`);
-        // Devolvemos el código para que el cliente redirija.
         return { success: true, code: newInfluencer.generated_code, error: null };
     } catch (error) {
         console.error('Error registering influencer:', error);
@@ -99,5 +95,21 @@ export async function registerInfluencerAction(
             return { success: false, error: error.message, code: null };
         }
         return { success: false, error: 'No se pudo registrar.', code: null };
+    }
+}
+
+export async function deleteCampaignAction(
+    campaignId: string
+): Promise<{ success: true } | { success: false; error: string }> {
+    try {
+        await deleteCampaign(campaignId);
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting campaign:', error);
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: 'No se pudo eliminar la campaña.' };
     }
 }

@@ -95,3 +95,18 @@ export async function registerInfluencer(
 
     return newInfluencer;
 }
+
+
+export async function deleteCampaign(campaignId: string): Promise<void> {
+    // Supabase is configured with cascading deletes, so deleting a campaign
+    // will also delete all associated influencers.
+    const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', campaignId);
+
+    if (error) {
+        console.error('Error deleting campaign:', error);
+        throw new Error('Error al eliminar la campaña de la base de datos.');
+    }
+}

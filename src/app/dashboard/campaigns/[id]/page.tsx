@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { format, isPast, isFuture, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar, Percent } from 'lucide-react';
+import { CampaignActions } from '@/components/dashboard/campaign-actions';
 
 function CampaignStatusBadge({ startDate, endDate }: { startDate: Date; endDate: Date }) {
   const now = new Date();
@@ -37,12 +38,17 @@ export default async function CampaignDetailsPage({ params }: { params: { id: st
             <Card>
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
-                        <CardTitle className="text-2xl font-headline">{campaign.name}</CardTitle>
-                        <CampaignStatusBadge startDate={startDate} endDate={endDate} />
+                        <div className='flex-1'>
+                            <CardTitle className="text-2xl font-headline">{campaign.name}</CardTitle>
+                            <CardDescription>{campaign.description}</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <CampaignStatusBadge startDate={startDate} endDate={endDate} />
+                           <CampaignActions campaignId={campaign.id} />
+                        </div>
                     </div>
-                    <CardDescription>{campaign.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                <CardContent className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground pt-6">
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         <span>{format(startDate, 'd MMM, yyyy', { locale: es })} - {format(endDate, 'd MMM, yyyy', { locale: es })}</span>
