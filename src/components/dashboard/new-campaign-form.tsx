@@ -28,8 +28,11 @@ const newCampaignSchema = z.object({
     to: z.date({ required_error: 'Se requiere una fecha de finalización.' }),
   }),
   discount: z.string().min(1, { message: 'Los detalles del descuento son obligatorios.' }),
-  max_influencers: z.coerce.number().int().nonnegative({ message: "Debe ser un número positivo."}).optional(),
-  image_url: z.string().url({ message: "Por favor, introduce una URL válida o déjalo vacío." }).or(z.literal('')).optional(),
+  max_influencers: z.preprocess(
+    (val) => (val === '' || val === undefined ? null : Number(val)),
+    z.number().int().nonnegative({ message: 'Debe ser un número positivo.' }).nullable().optional()
+  ),
+  image_url: z.string().url({ message: "Por favor, introduce una URL válida." }).or(z.literal('')).optional(),
 });
 
 type NewCampaignFormValues = z.infer<typeof newCampaignSchema>;
@@ -67,7 +70,7 @@ export function NewCampaignForm() {
       start_date: formatISO(data.dateRange.from),
       end_date: formatISO(data.dateRange.to),
       discount: data.discount,
-      max_influencers: data.max_influencers || null,
+      max_influencers: data.max_influencers,
       image_url: data.image_url || '',
     };
 
@@ -185,7 +188,7 @@ export function NewCampaignForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Máx. Influencers (Opcional)</FormLabel>
-                      <FormControl><Input type="number" placeholder="ej., 100" {...field} onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)} /></FormControl>
+                      <FormControl><Input type="number" placeholder="ej., 100" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value)} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
