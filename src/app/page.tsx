@@ -29,7 +29,7 @@ export default function Home() {
         <section className="container grid lg:grid-cols-2 gap-12 items-center py-12 md:py-24 lg:py-32">
           <div className="flex flex-col justify-center space-y-6">
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-              Lanza Campañas de Influencers Que Convierten
+              Lanza campañas con influencers que generan resultados
             </h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl">
               InfluenceBoost te da las herramientas para crear, gestionar y seguir tus campañas de marketing de influencers sin esfuerzo. Convierte seguidores en clientes.
