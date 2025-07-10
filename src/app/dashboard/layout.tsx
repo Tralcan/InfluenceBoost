@@ -25,7 +25,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider defaultOpen={false}>
       <Sidebar>
         <SidebarHeader>
           <Logo />
