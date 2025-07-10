@@ -47,8 +47,8 @@ const generateCampaignImageFlow = ai.defineFlow(
       },
     });
 
-    if (!media.url) {
-        throw new Error('Image generation failed.');
+    if (!media?.url) {
+        throw new Error('Image generation failed or returned no URL.');
     }
 
     return { imageUrl: media.url };

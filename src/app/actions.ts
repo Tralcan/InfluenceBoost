@@ -25,11 +25,19 @@ export async function createCampaignAction(
   try {
     let finalData = { ...data };
     
-    // Si no se proporciona una URL de imagen o es la de placeholder, generarla con IA
+    // Si no se proporciona una URL de imagen o está vacía, generarla con IA
     if (!finalData.image_url) {
-      console.log("Generating AI image for campaign...");
-      const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
-      finalData.image_url = imageResult.imageUrl;
+      console.log("No image URL provided. Generating AI image for campaign...");
+      try {
+        const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
+        console.log("AI image generated, URL length:", imageResult.imageUrl.length);
+        finalData.image_url = imageResult.imageUrl;
+      } catch (genError) {
+         console.error('Error generating campaign image:', genError);
+         // Opcional: no bloquear la creación de la campaña si la generación de imagen falla.
+         // Puedes asignar una imagen de placeholder aquí si lo prefieres.
+         finalData.image_url = ''; 
+      }
     }
 
     const newCampaign = await createCampaign(finalData);
