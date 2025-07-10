@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarFooter,
+  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import {
   PlusCircle,
@@ -30,6 +31,7 @@ export default function DashboardLayout({
         <SidebarHeader>
           <Logo />
         </SidebarHeader>
+        <SidebarSeparator />
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
