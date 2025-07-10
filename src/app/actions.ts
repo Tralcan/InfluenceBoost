@@ -2,7 +2,7 @@
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
 import { generateCampaignImage } from '@/ai/flows/generate-campaign-image-flow';
-import { createCampaign, registerInfluencer, deleteCampaign } from '@/lib/supabase/queries';
+import { createCampaign, registerInfluencer, deleteCampaign, updateCampaign } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { Campaign } from '@/lib/types';
@@ -68,6 +68,24 @@ export async function createCampaignAction(
         return { success: false, error: error.message };
     }
     return { success: false, error: 'No se pudo crear la campaña.' };
+  }
+}
+
+export async function updateCampaignAction(
+  campaignId: string,
+  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id' | 'image_url'>>
+): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
+  try {
+    const updatedCampaign = await updateCampaign(campaignId, data);
+    revalidatePath(`/dashboard/campaigns/${campaignId}`);
+    revalidatePath('/dashboard');
+    return { success: true, data: updatedCampaign };
+  } catch (error) {
+    console.error('Error updating campaign:', error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'No se pudo actualizar la campaña.' };
   }
 }
 

@@ -46,7 +46,7 @@ export function CampaignActions({ campaignId }: { campaignId: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Button asChild variant="outline" size="icon">
+      <Button asChild variant="outline" size="icon" className="h-8 w-8">
         <Link href={`/dashboard/campaigns/${campaignId}/edit`}>
           <FilePenLine className="h-4 w-4" />
           <span className="sr-only">Editar Campaña</span>
@@ -55,7 +55,7 @@ export function CampaignActions({ campaignId }: { campaignId: string }) {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="icon">
+          <Button variant="destructive" size="icon" className="h-8 w-8">
             <Trash2 className="h-4 w-4" />
             <span className="sr-only">Eliminar Campaña</span>
           </Button>

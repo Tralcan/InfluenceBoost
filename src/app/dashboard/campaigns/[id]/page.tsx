@@ -13,12 +13,12 @@ import { CampaignActions } from '@/components/dashboard/campaign-actions';
 function CampaignStatusBadge({ startDate, endDate }: { startDate: Date; endDate: Date }) {
   const now = new Date();
   if (isPast(endDate)) {
-    return <Badge variant="outline" className="text-base">Completada</Badge>;
+    return <Badge variant="outline" className="text-sm">Completada</Badge>;
   }
   if (isFuture(startDate)) {
-    return <Badge variant="secondary" className="text-base">Programada</Badge>;
+    return <Badge variant="secondary" className="text-sm">Programada</Badge>;
   }
-  return <Badge className="bg-green-500 hover:bg-green-600 text-white text-base">Activa</Badge>;
+  return <Badge className="bg-green-500 hover:bg-green-600 text-white text-sm">Activa</Badge>;
 }
 
 
@@ -39,13 +39,13 @@ export default async function CampaignDetailsPage({ params }: { params: { id: st
                 <CardHeader>
                     <div className="flex justify-between items-start gap-4">
                         <div className='flex-1'>
-                            <CardTitle className="text-2xl font-headline">{campaign.name}</CardTitle>
+                            <div className="flex items-center gap-4">
+                                <CardTitle className="text-2xl font-headline">{campaign.name}</CardTitle>
+                                <CampaignActions campaignId={campaign.id} />
+                            </div>
                             <CardDescription>{campaign.description}</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
-                           <CampaignStatusBadge startDate={startDate} endDate={endDate} />
-                           <CampaignActions campaignId={campaign.id} />
-                        </div>
+                        <CampaignStatusBadge startDate={startDate} endDate={endDate} />
                     </div>
                 </CardHeader>
                 <CardContent className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground pt-6">

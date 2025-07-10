@@ -64,6 +64,24 @@ export async function createCampaign(
   return newCampaign;
 }
 
+export async function updateCampaign(
+  id: string,
+  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id' | 'image_url'>>
+): Promise<Campaign> {
+  const { data: updatedCampaign, error } = await supabase
+    .from('campaigns')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating campaign:', error);
+    throw new Error('Error al actualizar la campaña en la base de datos.');
+  }
+  return updatedCampaign;
+}
+
 export async function registerInfluencer(
     campaignId: string, 
     influencerData: { 
