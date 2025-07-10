@@ -1,4 +1,4 @@
-// discount-suggestion.ts
+
 'use server';
 
 /**
@@ -26,7 +26,7 @@ export type SuggestDiscountInput = z.infer<typeof SuggestDiscountInputSchema>;
 const SuggestDiscountOutputSchema = z.object({
   suggestedDiscountPercentage: z
     .number()
-    .describe('El porcentaje de descuento sugerido para la campaña.'),
+    .describe('El valor numérico del porcentaje de descuento sugerido (p. ej., 20 para 20%).'),
   marketingLanguage: z
     .string()
     .describe(
@@ -60,7 +60,7 @@ const prompt = ai.definePrompt({
   - ¿Qué lenguaje de marketing resonaría más con el público objetivo?
   - ¿Cómo se puede posicionar el descuento para hacerlo más atractivo para los clientes potenciales?
 
-  Devuelve el porcentaje de descuento sugerido, el lenguaje de marketing y el razonamiento.
+  Devuelve el porcentaje de descuento sugerido como un NÚMERO (por ejemplo, para un 20% de descuento, devuelve el número 20), el lenguaje de marketing y el razonamiento.
   `,
 });
 
