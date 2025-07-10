@@ -79,14 +79,27 @@ export async function registerInfluencerAction(
 ) {
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
-    const socialMedia = formData.get('socialMedia') as string;
+    const instagram = formData.get('instagram_handle') as string;
+    const tiktok = formData.get('tiktok_handle') as string;
+    const x = formData.get('x_handle') as string;
+    const other = formData.get('other_social_media') as string;
 
-    if (!name || !email || !socialMedia) {
-        return { success: false, error: 'Todos los campos son obligatorios.' };
+    if (!name || !email) {
+        return { success: false, error: 'El nombre y el email son obligatorios.' };
+    }
+    if (!instagram && !tiktok && !x && !other) {
+        return { success: false, error: 'Debes proporcionar al menos una red social.' };
     }
 
     try {
-        const newInfluencer = await registerInfluencer(campaignId, { name, email, social_media: socialMedia });
+        const newInfluencer = await registerInfluencer(campaignId, { 
+            name, 
+            email, 
+            instagram_handle: instagram,
+            tiktok_handle: tiktok,
+            x_handle: x,
+            other_social_media: other
+        });
         revalidatePath(`/dashboard/campaigns/${campaignId}`);
         return { success: true, code: newInfluencer.generated_code, error: null };
     } catch (error) {

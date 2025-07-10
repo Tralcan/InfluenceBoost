@@ -66,7 +66,14 @@ export async function createCampaign(
 
 export async function registerInfluencer(
     campaignId: string, 
-    influencerData: { name: string, email: string, social_media: string }
+    influencerData: { 
+        name: string, 
+        email: string, 
+        instagram_handle: string, 
+        tiktok_handle: string, 
+        x_handle: string,
+        other_social_media: string
+    }
 ): Promise<Influencer> {
     const campaign = await getCampaignById(campaignId);
     if (!campaign) {
@@ -82,7 +89,10 @@ export async function registerInfluencer(
             campaign_id: campaignId,
             name: influencerData.name,
             email: influencerData.email,
-            social_media: influencerData.social_media,
+            instagram_handle: influencerData.instagram_handle,
+            tiktok_handle: influencerData.tiktok_handle,
+            x_handle: influencerData.x_handle,
+            other_social_media: influencerData.other_social_media,
             generated_code: generatedCode,
         })
         .select()

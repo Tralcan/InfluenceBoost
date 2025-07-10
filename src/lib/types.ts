@@ -9,7 +9,10 @@ export type Influencer = {
   id: string; // uuid, primary key
   name: string;
   email: string;
-  social_media: string;
+  tiktok_handle: string | null;
+  instagram_handle: string | null;
+  x_handle: string | null;
+  other_social_media: string | null;
   campaign_id: string; // uuid, foreign key to campaigns
   generated_code: string;
   uses: number; // default 0

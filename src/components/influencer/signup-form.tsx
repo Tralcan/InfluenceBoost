@@ -82,8 +82,20 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
             <Input id="email" name="email" type="email" placeholder="juan.perez@ejemplo.com" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="socialMedia">Usuario de Instagram, TikTok, o YouTube</Label>
-            <Input id="socialMedia" name="socialMedia" placeholder="@juanperez" required />
+            <Label htmlFor="instagram_handle">Instagram</Label>
+            <Input id="instagram_handle" name="instagram_handle" placeholder="@usuario" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="tiktok_handle">TikTok</Label>
+            <Input id="tiktok_handle" name="tiktok_handle" placeholder="@usuario" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="x_handle">X (Twitter)</Label>
+            <Input id="x_handle" name="x_handle" placeholder="@usuario" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="other_social_media">Otro (ej. YouTube, Blog)</Label>
+            <Input id="other_social_media" name="other_social_media" placeholder="URL o usuario" />
           </div>
           <SubmitButton />
            {state.error && (
