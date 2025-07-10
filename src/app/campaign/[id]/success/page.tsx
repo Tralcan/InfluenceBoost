@@ -12,7 +12,7 @@ function SuccessContent({ code }: { code: string | null }) {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
-          Could not retrieve your unique code. Please try signing up again.
+          No se pudo recuperar tu código único. Por favor, intenta registrarte de nuevo.
         </AlertDescription>
       </Alert>
     );
@@ -31,7 +31,7 @@ export default function InfluencerSuccessPage({ searchParams }: { searchParams: 
             <Logo />
         </Link>
       </div>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Cargando...</div>}>
         <SuccessContent code={code} />
       </Suspense>
     </div>

@@ -36,17 +36,17 @@ export default function DashboardLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip={{ children: 'Dashboard' }}
+                  tooltip={{ children: 'Panel' }}
                 >
-                   <Link href="/dashboard"><LayoutDashboard />Dashboard</Link>
+                   <Link href="/dashboard"><LayoutDashboard />Panel</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip={{ children: 'New Campaign' }}
+                  tooltip={{ children: 'Nueva Campaña' }}
                 >
-                  <Link href="/dashboard/campaigns/new"><PlusCircle />New Campaign</Link>
+                  <Link href="/dashboard/campaigns/new"><PlusCircle />Nueva Campaña</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -56,17 +56,17 @@ export default function DashboardLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip={{ children: 'Settings' }}
+                  tooltip={{ children: 'Ajustes' }}
                 >
-                   <Link href="#"><Settings />Settings</Link>
+                   <Link href="#"><Settings />Ajustes</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
                <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  tooltip={{ children: 'Help' }}
+                  tooltip={{ children: 'Ayuda' }}
                 >
-                   <Link href="#"><LifeBuoy />Help</Link>
+                   <Link href="#"><LifeBuoy />Ayuda</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

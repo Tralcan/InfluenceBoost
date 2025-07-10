@@ -16,18 +16,18 @@ export function InfluencersTable({ influencers }: { influencers: InfluencerCampa
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // Optionally add a toast notification here
+    // Opcionalmente, agregar una notificación toast aquí
   }
   
   if (influencers.length === 0) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Enrolled Influencers</CardTitle>
+                <CardTitle className="font-headline">Influencers Inscritos</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="text-center py-10">
-                    <p className="text-muted-foreground">No influencers have signed up yet.</p>
+                    <p className="text-muted-foreground">Aún no se ha inscrito ningún influencer.</p>
                 </div>
             </CardContent>
         </Card>
@@ -37,17 +37,17 @@ export function InfluencersTable({ influencers }: { influencers: InfluencerCampa
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Enrolled Influencers</CardTitle>
+        <CardTitle className="font-headline">Influencers Inscritos</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead>Social Media</TableHead>
-              <TableHead>Generated Code</TableHead>
-              <TableHead className="text-right">Uses</TableHead>
-              <TableHead className="text-right">Points</TableHead>
+              <TableHead className="w-[200px]">Nombre</TableHead>
+              <TableHead>Red Social</TableHead>
+              <TableHead>Código Generado</TableHead>
+              <TableHead className="text-right">Usos</TableHead>
+              <TableHead className="text-right">Puntos</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -63,8 +63,8 @@ export function InfluencersTable({ influencers }: { influencers: InfluencerCampa
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">{influencer.uses.toLocaleString()}</TableCell>
-                <TableCell className="text-right">{influencer.points.toLocaleString()}</TableCell>
+                <TableCell className="text-right">{influencer.uses.toLocaleString('es-ES')}</TableCell>
+                <TableCell className="text-right">{influencer.points.toLocaleString('es-ES')}</TableCell>
               </TableRow>
             ))}
           </TableBody>

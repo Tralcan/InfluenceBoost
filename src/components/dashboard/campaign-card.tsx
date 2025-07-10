@@ -12,17 +12,18 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Calendar, Users, Percent } from 'lucide-react';
 import Link from 'next/link';
 import { format, isPast, isFuture } from 'date-fns';
+import { es } from 'date-fns/locale';
 import Image from 'next/image';
 
 function CampaignStatusBadge({ startDate, endDate }: { startDate: Date; endDate: Date }) {
   const now = new Date();
   if (isPast(endDate)) {
-    return <Badge variant="outline">Completed</Badge>;
+    return <Badge variant="outline">Completada</Badge>;
   }
   if (isFuture(startDate)) {
-    return <Badge variant="secondary">Scheduled</Badge>;
+    return <Badge variant="secondary">Programada</Badge>;
   }
-  return <Badge className="bg-green-500 hover:bg-green-600 text-white">Active</Badge>;
+  return <Badge className="bg-green-500 hover:bg-green-600 text-white">Activa</Badge>;
 }
 
 export function CampaignCard({ campaign }: { campaign: Campaign }) {
@@ -35,7 +36,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
         </div>
         <CardDescription className="flex items-center gap-2 text-sm pt-1">
             <Calendar className="h-4 w-4" /> 
-            <span>{format(campaign.startDate, 'LLL dd, yyyy')} - {format(campaign.endDate, 'LLL dd, yyyy')}</span>
+            <span>{format(campaign.startDate, 'dd LLL, yyyy', { locale: es })} - {format(campaign.endDate, 'dd LLL, yyyy', { locale: es })}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow grid gap-4">
@@ -54,7 +55,7 @@ export function CampaignCard({ campaign }: { campaign: Campaign }) {
       <CardFooter>
         <Button asChild className="w-full">
           <Link href={`/dashboard/campaigns/${campaign.id}`}>
-            View Details <ArrowRight className="ml-2 h-4 w-4" />
+            Ver Detalles <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </CardFooter>

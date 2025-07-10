@@ -11,13 +11,13 @@ export default async function DashboardPage() {
     <div className="container mx-auto p-4 md:p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Your Campaigns</h1>
-          <p className="text-muted-foreground">Here's an overview of your marketing initiatives.</p>
+          <h1 className="text-3xl font-bold font-headline">Tus Campañas</h1>
+          <p className="text-muted-foreground">Aquí tienes un resumen de tus iniciativas de marketing.</p>
         </div>
         <Button asChild>
           <Link href="/dashboard/campaigns/new">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Create Campaign
+            Crear Campaña
           </Link>
         </Button>
       </div>
@@ -30,12 +30,12 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="text-center py-20 border-2 border-dashed rounded-lg">
-          <h2 className="text-xl font-semibold">No campaigns yet!</h2>
-          <p className="text-muted-foreground mt-2">Get started by creating your first campaign.</p>
+          <h2 className="text-xl font-semibold">¡Aún no hay campañas!</h2>
+          <p className="text-muted-foreground mt-2">Empieza creando tu primera campaña.</p>
           <Button asChild className="mt-4">
             <Link href="/dashboard/campaigns/new">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Create First Campaign
+              Crear Primera Campaña
             </Link>
           </Button>
         </div>

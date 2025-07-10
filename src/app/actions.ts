@@ -14,7 +14,7 @@ export async function suggestDiscountAction(
     return { success: true, data: result };
   } catch (error) {
     console.error('Error in suggestDiscountAction:', error);
-    return { success: false, error: 'An unexpected error occurred while generating the suggestion.' };
+    return { success: false, error: 'Ocurrió un error inesperado al generar la sugerencia.' };
   }
 }
 
@@ -27,7 +27,7 @@ export async function createCampaignAction(
     return { success: true, data: newCampaign };
   } catch (error) {
     console.error('Error creating campaign:', error);
-    return { success: false, error: 'Failed to create campaign.' };
+    return { success: false, error: 'No se pudo crear la campaña.' };
   }
 }
 
@@ -40,7 +40,7 @@ export async function registerInfluencerAction(
     const socialMedia = formData.get('socialMedia') as string;
 
     if (!name || !email || !socialMedia) {
-        return { success: false, error: 'All fields are required.' };
+        return { success: false, error: 'Todos los campos son obligatorios.' };
     }
 
     try {
@@ -49,6 +49,6 @@ export async function registerInfluencerAction(
         redirect(`/campaign/${campaignId}/success?code=${newInfluencer.generatedCode}`);
     } catch (error) {
         console.error('Error registering influencer:', error);
-        return { success: false, error: 'Failed to register.' };
+        return { success: false, error: 'No se pudo registrar.' };
     }
 }

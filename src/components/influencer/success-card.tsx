@@ -15,8 +15,8 @@ export function SuccessCard({ code }: SuccessCardProps) {
     const copyCode = () => {
         navigator.clipboard.writeText(code);
         toast({
-            title: "Code Copied!",
-            description: "Your unique discount code is now on your clipboard.",
+            title: "¡Código Copiado!",
+            description: "Tu código de descuento único está ahora en tu portapapeles.",
         });
     };
 
@@ -24,9 +24,9 @@ export function SuccessCard({ code }: SuccessCardProps) {
     <Card className="w-full max-w-lg mx-auto text-center">
       <CardHeader className="space-y-4">
         <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-        <CardTitle className="font-headline text-3xl">You're In!</CardTitle>
+        <CardTitle className="font-headline text-3xl">¡Estás Dentro!</CardTitle>
         <CardDescription>
-          You have successfully joined the campaign. Here is your unique discount code to share with your audience.
+          Te has unido a la campaña con éxito. Aquí tienes tu código de descuento único para compartir con tu audiencia.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -36,23 +36,23 @@ export function SuccessCard({ code }: SuccessCardProps) {
         <div className="flex flex-col sm:flex-row gap-2">
           <Button className="w-full" onClick={copyCode}>
             <Copy className="mr-2 h-4 w-4" />
-            Copy Code
+            Copiar Código
           </Button>
            <Button variant="secondary" className="w-full" onClick={copyCode}>
             <Share2 className="mr-2 h-4 w-4" />
-            Share
+            Compartir
           </Button>
         </div>
         <div className="text-sm text-muted-foreground pt-4">
-            <p className="font-semibold">Tips for sharing:</p>
+            <p className="font-semibold">Consejos para compartir:</p>
             <ul className="list-disc list-inside text-left mt-2">
-                <li>Add the code to your bio link.</li>
-                <li>Mention it in your next video or post.</li>
-                <li>Create dedicated stories about the discount.</li>
+                <li>Añade el código a tu enlace en la biografía.</li>
+                <li>Menciónalo en tu próximo vídeo o publicación.</li>
+                <li>Crea historias dedicadas sobre el descuento.</li>
             </ul>
         </div>
         <Button asChild variant="link">
-            <Link href="/">Return to Homepage</Link>
+            <Link href="/">Volver a la Página Principal</Link>
         </Button>
       </CardContent>
     </Card>

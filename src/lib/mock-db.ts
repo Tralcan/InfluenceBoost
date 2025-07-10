@@ -7,11 +7,11 @@ const MOCK_CAMPAIGNS: Campaign[] = [
   {
     id: '1',
     companyId: '1',
-    name: 'Summer Sale Spectacle',
-    description: 'A huge summer sale event to boost our new line of sunglasses. We want to reach a young, fashion-forward audience on Instagram and TikTok.',
+    name: 'Espectáculo de Rebajas de Verano',
+    description: 'Un gran evento de rebajas de verano para impulsar nuestra nueva línea de gafas de sol. Queremos llegar a un público joven y a la moda en Instagram y TikTok.',
     startDate: new Date(),
     endDate: addDays(new Date(), 30),
-    discount: '25% OFF',
+    discount: '25% DTO',
     maxInfluencers: 50,
     imageUrl: `https://placehold.co/1200x630.png`,
     uniqueUrl: '/campaign/1',
@@ -25,11 +25,11 @@ const MOCK_CAMPAIGNS: Campaign[] = [
   {
     id: '2',
     companyId: '1',
-    name: 'Winter Wellness Retreat',
-    description: 'Promoting our new line of wellness products for the winter season. Targeting micro-influencers in the health and wellness space.',
+    name: 'Retiro de Bienestar de Invierno',
+    description: 'Promocionando nuestra nueva línea de productos de bienestar para la temporada de invierno. Dirigido a micro-influencers en el espacio de salud y bienestar.',
     startDate: addDays(new Date(), -60),
     endDate: addDays(new Date(), -10),
-    discount: 'Buy One Get One Free',
+    discount: 'Compra Uno y Llévate Otro Gratis',
     maxInfluencers: 20,
     imageUrl: `https://placehold.co/1200x630.png`,
     uniqueUrl: '/campaign/2',
@@ -68,7 +68,7 @@ export async function createCampaign(data: Omit<Campaign, 'id' | 'uniqueUrl' | '
 export async function registerInfluencer(campaignId: string, influencerData: { name: string, email: string, socialMedia: string }): Promise<InfluencerCampaign> {
     const campaign = await getCampaignById(campaignId);
     if (!campaign) {
-        throw new Error('Campaign not found');
+        throw new Error('Campaña no encontrada');
     }
 
     const influencerId = `inf${Math.floor(Math.random() * 1000)}`;

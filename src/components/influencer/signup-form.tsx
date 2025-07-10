@@ -14,7 +14,7 @@ function SubmitButton() {
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Get My Unique Code
+      Obtener Mi Código Único
     </Button>
   );
 }
@@ -38,7 +38,7 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
             </div>
         )}
         <div className="space-y-1">
-            <p className="text-sm font-medium text-primary">You're invited to join</p>
+            <p className="text-sm font-medium text-primary">Estás invitado/a a unirte a</p>
             <CardTitle className="font-headline text-3xl">{campaign.name}</CardTitle>
         </div>
         <CardDescription>{campaign.description}</CardDescription>
@@ -46,16 +46,16 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
       <CardContent>
         <form action={action} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input id="name" name="name" placeholder="John Doe" required />
+            <Label htmlFor="name">Nombre Completo</Label>
+            <Input id="name" name="name" placeholder="Juan Pérez" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="john.doe@example.com" required />
+            <Input id="email" name="email" type="email" placeholder="juan.perez@ejemplo.com" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="socialMedia">Instagram, TikTok, or YouTube Handle</Label>
-            <Input id="socialMedia" name="socialMedia" placeholder="@johndoe" required />
+            <Label htmlFor="socialMedia">Usuario de Instagram, TikTok, o YouTube</Label>
+            <Input id="socialMedia" name="socialMedia" placeholder="@juanperez" required />
           </div>
           <SubmitButton />
         </form>

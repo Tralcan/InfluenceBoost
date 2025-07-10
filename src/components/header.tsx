@@ -27,6 +27,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
+const segmentTranslations: { [key: string]: string } = {
+  dashboard: 'Panel',
+  campaigns: 'Campañas',
+  new: 'Nueva',
+};
+
+function translateSegment(segment: string): string {
+  return segmentTranslations[segment] || segment;
+}
+
 export function Header() {
   const pathname = usePathname();
   const pathSegments = pathname.split('/').filter(Boolean);
@@ -46,15 +56,16 @@ export function Header() {
           {pathSegments.map((segment, index) => {
             const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
             const isLast = index === pathSegments.length - 1;
+            const translatedSegment = translateSegment(segment);
             return (
               <React.Fragment key={href}>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {isLast ? (
-                    <BreadcrumbPage className="capitalize">{segment}</BreadcrumbPage>
+                    <BreadcrumbPage className="capitalize">{translatedSegment}</BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
-                      <Link href={href} className="capitalize">{segment}</Link>
+                      <Link href={href} className="capitalize">{translatedSegment}</Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
@@ -77,16 +88,16 @@ export function Header() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Ajustes</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
              <LogOut className="mr-2 h-4 w-4" />
-            <span>Logout</span>
+            <span>Cerrar Sesión</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

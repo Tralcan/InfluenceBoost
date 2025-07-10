@@ -18,7 +18,7 @@ export function QRCodeDisplay({ campaignName, uniqueUrl, qrCodeUrl }: QRCodeDisp
 
   const copyUrl = () => {
     navigator.clipboard.writeText(fullUrl);
-    toast({ title: 'URL Copied!', description: 'The campaign link is now on your clipboard.' });
+    toast({ title: '¡URL Copiada!', description: 'El enlace de la campaña está ahora en tu portapapeles.' });
   };
 
   return (
@@ -26,10 +26,10 @@ export function QRCodeDisplay({ campaignName, uniqueUrl, qrCodeUrl }: QRCodeDisp
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-headline">
           <QrCode />
-          Influencer Signup Link
+          Enlace de Registro de Influencer
         </CardTitle>
         <CardDescription>
-          Share this link or QR code to let influencers sign up for your campaign.
+          Comparte este enlace o código QR para que los influencers se inscriban en tu campaña.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -43,7 +43,7 @@ export function QRCodeDisplay({ campaignName, uniqueUrl, qrCodeUrl }: QRCodeDisp
           <div className="p-4 border rounded-lg bg-white">
              <Image
                 src={qrCodeUrl}
-                alt={`QR Code for ${campaignName}`}
+                alt={`Código QR para ${campaignName}`}
                 width={200}
                 height={200}
               />
@@ -51,7 +51,7 @@ export function QRCodeDisplay({ campaignName, uniqueUrl, qrCodeUrl }: QRCodeDisp
           <Button asChild>
             <a href={qrCodeUrl} download={`qr-code-${campaignName.toLowerCase().replace(/\s+/g, '-')}.png`}>
               <Download className="mr-2 h-4 w-4" />
-              Download QR Code
+              Descargar Código QR
             </a>
           </Button>
         </div>

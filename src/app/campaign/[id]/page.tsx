@@ -28,13 +28,13 @@ export default async function InfluencerCampaignPage({ params }: { params: { id:
         {isCampaignOver ? (
           <Alert variant="destructive" className="max-w-lg mx-auto">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Campaign Has Ended</AlertTitle>
+            <AlertTitle>La Campaña Ha Finalizado</AlertTitle>
             <AlertDescription>
-              This campaign is no longer accepting new influencers.
+              Esta campaña ya no acepta nuevos influencers.
             </AlertDescription>
             <div className="mt-4">
               <Button asChild variant="outline">
-                <Link href="/">Return to Homepage</Link>
+                <Link href="/">Volver a la Página Principal</Link>
               </Button>
             </div>
           </Alert>

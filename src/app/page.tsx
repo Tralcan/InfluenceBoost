@@ -15,10 +15,10 @@ export default function Home() {
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-2">
               <Button asChild variant="ghost">
-                <Link href="/dashboard">Login</Link>
+                <Link href="/dashboard">Iniciar Sesión</Link>
               </Button>
               <Button asChild>
-                <Link href="/dashboard">Get Started <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/dashboard">Empezar <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </nav>
           </div>
@@ -29,22 +29,22 @@ export default function Home() {
         <section className="container grid lg:grid-cols-2 gap-12 items-center py-12 md:py-24 lg:py-32">
           <div className="flex flex-col justify-center space-y-6">
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline">
-              Launch Influencer Campaigns That Convert
+              Lanza Campañas de Influencers Que Convierten
             </h1>
             <p className="max-w-[600px] text-muted-foreground md:text-xl">
-              InfluenceBoost provides the tools to create, manage, and track your influencer marketing campaigns effortlessly. Turn followers into customers.
+              InfluenceBoost te da las herramientas para crear, gestionar y seguir tus campañas de marketing de influencers sin esfuerzo. Convierte seguidores en clientes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
                <Button asChild size="lg">
-                <Link href="/dashboard">Create First Campaign <Rocket className="ml-2 h-4 w-4" /></Link>
+                <Link href="/dashboard">Crear Primera Campaña <Rocket className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
           </div>
           <div className="flex items-center justify-center">
             <Card className="w-full max-w-md shadow-2xl">
               <CardHeader>
-                <CardTitle className="font-headline">Your All-In-One Platform</CardTitle>
-                <CardDescription>Everything you need for success.</CardDescription>
+                <CardTitle className="font-headline">Tu Plataforma Todo en Uno</CardTitle>
+                <CardDescription>Todo lo que necesitas para el éxito.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="flex items-start gap-4">
@@ -52,8 +52,8 @@ export default function Home() {
                     <Rocket className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Easy Campaign Creation</h3>
-                    <p className="text-sm text-muted-foreground">Set up campaigns in minutes with our intuitive builder.</p>
+                    <h3 className="font-semibold">Creación Fácil de Campañas</h3>
+                    <p className="text-sm text-muted-foreground">Configura campañas en minutos con nuestro constructor intuitivo.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -61,8 +61,8 @@ export default function Home() {
                     <Users className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Seamless Influencer Onboarding</h3>
-                    <p className="text-sm text-muted-foreground">Unique links & QR codes for easy influencer sign-ups.</p>
+                    <h3 className="font-semibold">Incorporación de Influencers Simplificada</h3>
+                    <p className="text-sm text-muted-foreground">Enlaces únicos y códigos QR para registros fáciles de influencers.</p>
                   </div>
                 </div>
                  <div className="flex items-start gap-4">
@@ -70,8 +70,8 @@ export default function Home() {
                     <CheckCircle className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">AI-Powered Optimization</h3>
-                    <p className="text-sm text-muted-foreground">Get AI suggestions for the best discount to offer.</p>
+                    <h3 className="font-semibold">Optimización con IA</h3>
+                    <p className="text-sm text-muted-foreground">Obtén sugerencias de IA para el mejor descuento a ofrecer.</p>
                   </div>
                 </div>
               </CardContent>
@@ -82,7 +82,7 @@ export default function Home() {
 
       <footer className="border-t">
         <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
-          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} InfluenceBoost. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} InfluenceBoost. Todos los derechos reservados.</p>
            <Logo className="h-6" />
         </div>
       </footer>

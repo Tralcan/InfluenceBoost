@@ -15,31 +15,31 @@ import {z} from 'genkit';
 const SuggestDiscountInputSchema = z.object({
   campaignGoal: z
     .string()
-    .describe('The goal of the campaign, e.g., increase sales, gain new customers, brand awareness.'),
+    .describe('El objetivo de la campaña, p. ej., aumentar las ventas, conseguir nuevos clientes, notoriedad de marca.'),
   historicalData: z
     .string()
     .optional()
-    .describe('Historical data from previous campaigns, if available.'),
+    .describe('Datos históricos de campañas anteriores, si están disponibles.'),
   currentDiscount: z
     .number()
     .optional()
-    .describe('The current discount amount being offered as a percentage'),
+    .describe('El importe del descuento actual que se ofrece como porcentaje'),
 });
 export type SuggestDiscountInput = z.infer<typeof SuggestDiscountInputSchema>;
 
 const SuggestDiscountOutputSchema = z.object({
   suggestedDiscountPercentage: z
     .number()
-    .describe('The suggested discount percentage to use for the campaign.'),
+    .describe('El porcentaje de descuento sugerido para la campaña.'),
   marketingLanguage: z
     .string()
     .describe(
-      'Marketing language to use when advertising the discount, e.g., a catchy slogan or phrase.'
+      'Lenguaje de marketing para usar al publicitar el descuento, p. ej., un eslogan o frase pegadiza.'
     ),
   reasoning: z
     .string()
     .describe(
-      'Explanation of why the discount percentage was chosen and how the marketing language can be more effective.'
+      'Explicación de por qué se eligió el porcentaje de descuento y cómo el lenguaje de marketing puede ser más efectivo.'
     ),
 });
 export type SuggestDiscountOutput = z.infer<typeof SuggestDiscountOutputSchema>;
@@ -52,20 +52,20 @@ const prompt = ai.definePrompt({
   name: 'suggestDiscountPrompt',
   input: {schema: SuggestDiscountInputSchema},
   output: {schema: SuggestDiscountOutputSchema},
-  prompt: `You are an AI marketing assistant that provides suggestions for the optimal discount and marketing language for marketing campaigns.
+  prompt: `Eres un asistente de marketing de IA que proporciona sugerencias para el descuento y el lenguaje de marketing óptimos para campañas de marketing.
 
-  Based on the campaign's goals, historical data, and current discount (if available) recommend the best discount percentage to offer and create compelling marketing language.
+  Basándote en los objetivos de la campaña, los datos históricos y el descuento actual (si está disponible), recomienda el mejor porcentaje de descuento a ofrecer y crea un lenguaje de marketing convincente.
 
-  Campaign Goal: {{{campaignGoal}}}
-  Historical Data: {{{historicalData}}}
-  Current Discount: {{{currentDiscount}}}
+  Objetivo de la Campaña: {{{campaignGoal}}}
+  Datos Históricos: {{{historicalData}}}
+  Descuento Actual: {{{currentDiscount}}}
 
-  Consider the following when determining the discount:
-  - What discount is likely to be the most effective to achieve the campaign goal?
-  - What marketing language would resonate the most with the target audience?
-  - How can the discount be positioned to make it more attractive to potential customers?
+  Considera lo siguiente al determinar el descuento:
+  - ¿Qué descuento es probable que sea más efectivo para alcanzar el objetivo de la campaña?
+  - ¿Qué lenguaje de marketing resonaría más con el público objetivo?
+  - ¿Cómo se puede posicionar el descuento para hacerlo más atractivo para los clientes potenciales?
 
-  Return the suggested discount percentage, marketing language, and reasoning.
+  Devuelve el porcentaje de descuento sugerido, el lenguaje de marketing y el razonamiento.
   `,
 });
 

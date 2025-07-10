@@ -12,6 +12,7 @@ import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { createCampaignAction } from '@/app/actions';
@@ -20,15 +21,15 @@ import { DiscountOptimizer } from './discount-optimizer';
 import { useState } from 'react';
 
 const newCampaignSchema = z.object({
-  name: z.string().min(5, { message: 'Campaign name must be at least 5 characters.' }),
-  description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
+  name: z.string().min(5, { message: 'El nombre de la campaña debe tener al menos 5 caracteres.' }),
+  description: z.string().min(10, { message: 'La descripción debe tener al menos 10 caracteres.' }),
   dateRange: z.object({
-    from: z.date({ required_error: 'A start date is required.' }),
-    to: z.date({ required_error: 'An end date is required.' }),
+    from: z.date({ required_error: 'Se requiere una fecha de inicio.' }),
+    to: z.date({ required_error: 'Se requiere una fecha de finalización.' }),
   }),
-  discount: z.string().min(1, { message: 'Discount details are required.' }),
+  discount: z.string().min(1, { message: 'Los detalles del descuento son obligatorios.' }),
   maxInfluencers: z.coerce.number().positive().optional(),
-  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
+  imageUrl: z.string().url({ message: 'Por favor, introduce una URL válida.' }).optional().or(z.literal('')),
 });
 
 type NewCampaignFormValues = z.infer<typeof newCampaignSchema>;
@@ -52,8 +53,8 @@ export function NewCampaignForm() {
     form.setValue('discount', suggestion.discount);
     form.setValue('description', suggestion.description, { shouldValidate: true });
     toast({
-        title: "AI Suggestion Applied!",
-        description: "Discount and description have been updated.",
+        title: "¡Sugerencia de IA aplicada!",
+        description: "El descuento y la descripción han sido actualizados.",
     });
   };
 
@@ -73,8 +74,8 @@ export function NewCampaignForm() {
 
     if (result.success) {
       toast({
-        title: 'Campaign Created!',
-        description: `Your new campaign "${result.data.name}" is live.`,
+        title: '¡Campaña Creada!',
+        description: `Tu nueva campaña "${result.data.name}" está activa.`,
       });
       router.push(`/dashboard/campaigns/${result.data.id}`);
     } else {
@@ -92,7 +93,7 @@ export function NewCampaignForm() {
       <div className="md:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Create New Campaign</CardTitle>
+            <CardTitle className="font-headline">Crear Nueva Campaña</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -102,8 +103,8 @@ export function NewCampaignForm() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Campaign Name</FormLabel>
-                      <FormControl><Input placeholder="e.g., Summer Fashion Launch" {...field} /></FormControl>
+                      <FormLabel>Nombre de la Campaña</FormLabel>
+                      <FormControl><Input placeholder="ej., Lanzamiento de Moda de Verano" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -113,9 +114,9 @@ export function NewCampaignForm() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>Descripción</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Describe your campaign goals, target audience, and key messaging." {...field} />
+                        <Textarea placeholder="Describe los objetivos de tu campaña, público objetivo y mensajes clave." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -126,7 +127,7 @@ export function NewCampaignForm() {
                   name="dateRange"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Campaign Dates</FormLabel>
+                      <FormLabel>Fechas de la Campaña</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -137,12 +138,12 @@ export function NewCampaignForm() {
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {field.value?.from ? (
                                 field.value.to ? (
-                                  <>{format(field.value.from, 'LLL dd, y')} - {format(field.value.to, 'LLL dd, y')}</>
+                                  <>{format(field.value.from, 'd LLL, y', { locale: es })} - {format(field.value.to, 'd LLL, y', { locale: es })}</>
                                 ) : (
-                                  format(field.value.from, 'LLL dd, y')
+                                  format(field.value.from, 'd LLL, y', { locale: es })
                                 )
                               ) : (
-                                <span>Pick a date range</span>
+                                <span>Elige un rango de fechas</span>
                               )}
                             </Button>
                           </FormControl>
@@ -155,6 +156,7 @@ export function NewCampaignForm() {
                             selected={{ from: field.value?.from, to: field.value?.to }}
                             onSelect={field.onChange}
                             numberOfMonths={2}
+                            locale={es}
                           />
                         </PopoverContent>
                       </Popover>
@@ -167,10 +169,10 @@ export function NewCampaignForm() {
                   name="discount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discount Details</FormLabel>
-                      <FormControl><Input placeholder="e.g., 20% OFF, BOGO, $10 Discount" {...field} /></FormControl>
+                      <FormLabel>Detalles del Descuento</FormLabel>
+                      <FormControl><Input placeholder="ej., 20% DTO, 2x1, 10€ de Descuento" {...field} /></FormControl>
                        <FormDescription>
-                        This will be used to generate influencer codes.
+                        Esto se usará para generar los códigos de los influencers.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -181,8 +183,8 @@ export function NewCampaignForm() {
                   name="maxInfluencers"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Max Influencers (Optional)</FormLabel>
-                      <FormControl><Input type="number" placeholder="e.g., 100" {...field} onChange={event => field.onChange(+event.target.value)} /></FormControl>
+                      <FormLabel>Máx. Influencers (Opcional)</FormLabel>
+                      <FormControl><Input type="number" placeholder="ej., 100" {...field} onChange={event => field.onChange(+event.target.value)} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -192,8 +194,8 @@ export function NewCampaignForm() {
                   name="imageUrl"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Campaign Image URL (Optional)</FormLabel>
-                      <FormControl><Input placeholder="https://your-image-url.com/image.png" {...field} /></FormControl>
+                      <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>
+                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -201,7 +203,7 @@ export function NewCampaignForm() {
 
                 <Button type="submit" size="lg" disabled={isSubmitting}>
                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Campaign
+                  Crear Campaña
                 </Button>
               </form>
             </Form>
