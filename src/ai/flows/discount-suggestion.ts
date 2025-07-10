@@ -18,6 +18,7 @@ const SuggestDiscountInputSchema = z.object({
     .describe('El objetivo de la campaña, p. ej., aumentar las ventas, conseguir nuevos clientes, notoriedad de marca.'),
   historicalData: z
     .string()
+
     .optional()
     .describe('Datos históricos de campañas anteriores, si están disponibles.'),
 });
@@ -72,7 +73,24 @@ const suggestDiscountFlow = ai.defineFlow(
     outputSchema: SuggestDiscountOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    console.log('suggestDiscountFlow: Recibida entrada:', input);
+
+    try {
+        const response = await prompt(input);
+        
+        console.log('suggestDiscountFlow: Recibida respuesta bruta de la IA:', JSON.stringify(response, null, 2));
+
+        if (!response.output) {
+            console.error('suggestDiscountFlow: La respuesta de la IA no contiene el campo "output".');
+            throw new Error('La respuesta de la IA tiene un formato inesperado.');
+        }
+
+        console.log('suggestDiscountFlow: La salida validada es:', response.output);
+        return response.output;
+
+    } catch (e) {
+        console.error('suggestDiscountFlow: Error durante la llamada a la IA o la validación.', e);
+        throw e;
+    }
   }
 );

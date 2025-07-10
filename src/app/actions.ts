@@ -11,11 +11,14 @@ export async function suggestDiscountAction(
   input: SuggestDiscountInput
 ): Promise<{ success: true; data: SuggestDiscountOutput } | { success: false; error: string }> {
   try {
+    console.log('Iniciando suggestDiscountAction con la entrada:', input);
     const result = await suggestDiscount(input);
+    console.log('suggestDiscountAction recibió el resultado:', result);
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error in suggestDiscountAction:', error);
-    return { success: false, error: 'Ocurrió un error inesperado al generar la sugerencia.' };
+    console.error('Error detallado en suggestDiscountAction:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido.';
+    return { success: false, error: `Ocurrió un error inesperado al generar la sugerencia. Detalles: ${errorMessage}` };
   }
 }
 
