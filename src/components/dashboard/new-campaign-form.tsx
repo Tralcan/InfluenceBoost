@@ -29,7 +29,7 @@ const newCampaignSchema = z.object({
   }),
   discount: z.string().min(1, { message: 'Los detalles del descuento son obligatorios.' }),
   max_influencers: z.coerce.number().positive().optional(),
-  image_url: z.string().optional(),
+  image_url: z.string().url({ message: "Por favor, introduce una URL válida." }).or(z.literal('')).optional(),
 });
 
 type NewCampaignFormValues = z.infer<typeof newCampaignSchema>;
