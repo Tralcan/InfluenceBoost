@@ -22,10 +22,15 @@ export async function suggestDiscountAction(
 export async function createCampaignAction(
   data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
-  console.log('DEBUG: Iniciando createCampaignAction con datos:', data);
+  console.log('DEBUG: Iniciando createCampaignAction con datos:', {
+    ...data,
+    image_url: data.image_url ? `URL de longitud ${data.image_url.length}` : 'VACÍO'
+  });
+  
   try {
     let finalImageUrl = data.image_url;
 
+    // Explicitly check for an empty string to trigger AI generation
     if (!finalImageUrl) {
       console.log("DEBUG: No se proporcionó URL de imagen. Activando la generación de imágenes de IA para la campaña:", data.name);
       try {
@@ -35,16 +40,16 @@ export async function createCampaignAction(
             console.log("DEBUG: Imagen de IA generada con éxito. Longitud de la URL:", imageResult.imageUrl.length);
             finalImageUrl = imageResult.imageUrl;
         } else {
-            console.log("DEBUG: La generación de imágenes de IA no devolvió una URL. Se usará una URL vacía.");
-            finalImageUrl = ''; // Asegurarse de que sea una cadena vacía si falla
+            console.warn("DEBUG: La generación de imágenes de IA no devolvió una URL. Se usará una URL vacía.");
+            finalImageUrl = ''; // Ensure it's an empty string if generation fails
         }
 
       } catch (genError) {
          console.error('DEBUG: Error generando la imagen de la campaña:', genError);
-         finalImageUrl = ''; 
+         finalImageUrl = ''; // Fallback to empty string on error
       }
     } else {
-        console.log("DEBUG: Se proporcionó una URL de imagen:", finalImageUrl);
+        console.log("DEBUG: Se proporcionó una URL de imagen, se saltará la generación de IA:", finalImageUrl);
     }
 
     const campaignToCreate = {
@@ -54,7 +59,7 @@ export async function createCampaignAction(
     
     console.log("DEBUG: Datos finales a guardar en la base de datos:", {
         ...campaignToCreate,
-        image_url: `URL de longitud ${campaignToCreate.image_url.length}` // No registrar la URL completa
+        image_url: `URL de longitud ${campaignToCreate.image_url.length}` // Don't log the full data URI
     });
 
     const newCampaign = await createCampaign(campaignToCreate);
@@ -68,6 +73,7 @@ export async function createCampaignAction(
     return { success: false, error: 'No se pudo crear la campaña.' };
   }
 }
+
 
 export async function registerInfluencerAction(
     campaignId: string,

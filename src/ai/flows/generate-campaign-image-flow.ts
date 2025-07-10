@@ -1,4 +1,3 @@
-// generate-campaign-image-flow.ts
 'use server';
 
 /**

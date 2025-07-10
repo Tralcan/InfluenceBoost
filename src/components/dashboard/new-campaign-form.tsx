@@ -28,8 +28,8 @@ const newCampaignSchema = z.object({
     to: z.date({ required_error: 'Se requiere una fecha de finalización.' }),
   }),
   discount: z.string().min(1, { message: 'Los detalles del descuento son obligatorios.' }),
-  max_influencers: z.coerce.number().positive().optional(),
-  image_url: z.string().url({ message: "Por favor, introduce una URL válida." }).or(z.literal('')).optional(),
+  max_influencers: z.coerce.number().int().nonnegative({ message: "Debe ser un número positivo."}).optional(),
+  image_url: z.string().url({ message: "Por favor, introduce una URL válida o déjalo vacío." }).or(z.literal('')).optional(),
 });
 
 type NewCampaignFormValues = z.infer<typeof newCampaignSchema>;
