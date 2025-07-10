@@ -25,9 +25,8 @@ export async function createCampaignAction(
   try {
     let finalData = { ...data };
     
-    // Si no se proporciona una URL de imagen o está vacía, generarla con IA
     if (!finalData.image_url) {
-      console.log("No image URL provided. Generating AI image for campaign...");
+      console.log("No image URL provided, triggering AI image generation for campaign:", data.name);
       try {
         const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
         console.log("AI image generated, URL length:", imageResult.imageUrl.length);

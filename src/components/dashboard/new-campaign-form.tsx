@@ -196,7 +196,7 @@ export function NewCampaignForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>
-                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} /></FormControl>
+                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} value={field.value || ''} /></FormControl>
                       <FormDescription>Si se deja vacío, la IA generará una imagen.</FormDescription>
                       <FormMessage />
                     </FormItem>
