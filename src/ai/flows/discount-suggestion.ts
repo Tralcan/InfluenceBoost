@@ -2,11 +2,11 @@
 'use server';
 
 /**
- * @fileOverview An AI agent that suggests an optimal discount percentage and marketing language based on campaign goals and historical data.
+ * @fileOverview Un agente de IA que sugiere un porcentaje de descuento óptimo y un texto de marketing basado en los objetivos de la campaña y datos históricos.
  *
- * - suggestDiscount - A function that handles the discount suggestion process.
- * - SuggestDiscountInput - The input type for the suggestDiscount function.
- * - SuggestDiscountOutput - The return type for the suggestDiscount function.
+ * - suggestDiscount - Una función que maneja el proceso de sugerencia de descuento.
+ * - SuggestDiscountInput - El tipo de entrada para la función suggestDiscount.
+ * - SuggestDiscountOutput - El tipo de retorno para la función suggestDiscount.
  */
 
 import {ai} from '@/ai/genkit';
@@ -26,7 +26,7 @@ export type SuggestDiscountInput = z.infer<typeof SuggestDiscountInputSchema>;
 const SuggestDiscountOutputSchema = z.object({
   suggestedDiscountPercentage: z
     .number()
-    .describe('El valor numérico del porcentaje de descuento sugerido (p. ej., 20 para 20%).'),
+    .describe('El valor numérico del porcentaje de descuento sugerido (p. ej., para un 20% de descuento, devuelve el número 20).'),
   marketingLanguage: z
     .string()
     .describe(
@@ -48,19 +48,20 @@ const prompt = ai.definePrompt({
   name: 'suggestDiscountPrompt',
   input: {schema: SuggestDiscountInputSchema},
   output: {schema: SuggestDiscountOutputSchema},
-  prompt: `Eres un asistente de marketing de IA que proporciona sugerencias para el descuento y el lenguaje de marketing óptimos para campañas de marketing.
+  prompt: `Eres un asistente de marketing experto en IA. Tu tarea es proporcionar sugerencias para el descuento y el texto de marketing óptimos para campañas.
 
-  Basándote en los objetivos de la campaña y los datos históricos (si están disponibles), recomienda el mejor porcentaje de descuento a ofrecer y crea un lenguaje de marketing convincente.
+  Basándote en los objetivos de la campaña y los datos históricos (si se proporcionan), recomienda el mejor porcentaje de descuento a ofrecer y crea un texto de marketing convincente.
 
-  Objetivo de la Campaña: {{{campaignGoal}}}
-  Datos Históricos: {{{historicalData}}}
+  **Objetivo de la Campaña:** {{{campaignGoal}}}
+  **Datos Históricos:** {{{historicalData}}}
 
   Considera lo siguiente al determinar el descuento:
-  - ¿Qué descuento es probable que sea más efectivo para alcanzar el objetivo de la campaña?
-  - ¿Qué lenguaje de marketing resonaría más con el público objetivo?
-  - ¿Cómo se puede posicionar el descuento para hacerlo más atractivo para los clientes potenciales?
+  - ¿Qué descuento es más probable que logre el objetivo de la campaña?
+  - ¿Qué texto de marketing resonaría mejor con el público objetivo?
+  - ¿Cómo se puede posicionar el descuento para que sea más atractivo?
 
-  Devuelve el porcentaje de descuento sugerido como un NÚMERO (por ejemplo, para un 20% de descuento, devuelve el número 20), el lenguaje de marketing y el razonamiento.
+  **Instrucción de formato de salida importante:**
+  Devuelve el porcentaje de descuento sugerido como un NÚMERO ENTERO (por ejemplo, para un 20% de descuento, devuelve el número 20), junto con el texto de marketing y el razonamiento. No incluyas el símbolo '%' en el número.
   `,
 });
 
