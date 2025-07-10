@@ -23,24 +23,29 @@ export async function createCampaignAction(
   data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   try {
-    let finalData = { ...data };
-    
+    let finalImageUrl = data.image_url;
+
     // Condición explícita para generar la imagen de IA si no se proporciona una URL.
-    if (!finalData.image_url) {
+    if (!finalImageUrl) {
       console.log("No image URL provided, triggering AI image generation for campaign:", data.name);
       try {
         const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
         console.log("AI image generated, URL length:", imageResult.imageUrl.length);
-        finalData.image_url = imageResult.imageUrl;
+        finalImageUrl = imageResult.imageUrl;
       } catch (genError) {
          console.error('Error generating campaign image:', genError);
-         // Opcional: no bloquear la creación de la campaña si la generación de imagen falla.
-         // Puedes asignar una imagen de placeholder aquí si lo prefieres.
-         finalData.image_url = ''; 
+         // No bloquear la creación de la campaña si la generación de imagen falla.
+         // Se puede asignar una imagen de placeholder aquí si se prefiere.
+         finalImageUrl = ''; 
       }
     }
 
-    const newCampaign = await createCampaign(finalData);
+    const campaignToCreate = {
+        ...data,
+        image_url: finalImageUrl,
+    };
+
+    const newCampaign = await createCampaign(campaignToCreate);
     revalidatePath('/dashboard');
     return { success: true, data: newCampaign };
   } catch (error) {

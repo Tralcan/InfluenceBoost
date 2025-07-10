@@ -46,7 +46,7 @@ export function NewCampaignForm() {
       description: '',
       discount: '',
       image_url: '',
-      max_influencers: 100,
+      max_influencers: 100, // Valor inicial definido
     },
   });
 
@@ -68,7 +68,7 @@ export function NewCampaignForm() {
       end_date: formatISO(data.dateRange.to),
       discount: data.discount,
       max_influencers: data.max_influencers || null,
-      image_url: data.image_url || '', // Enviar cadena vacía si no hay imagen
+      image_url: data.image_url || '',
     };
 
     const result = await createCampaignAction(campaignData);
@@ -185,7 +185,7 @@ export function NewCampaignForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Máx. Influencers (Opcional)</FormLabel>
-                      <FormControl><Input type="number" placeholder="ej., 100" {...field} value={field.value ?? ''} onChange={event => field.onChange(+event.target.value)} /></FormControl>
+                      <FormControl><Input type="number" placeholder="ej., 100" {...field} onChange={event => field.onChange(event.target.value === '' ? undefined : +event.target.value)} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -196,7 +196,7 @@ export function NewCampaignForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>
-                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} value={field.value || ''} /></FormControl>
+                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} /></FormControl>
                       <FormDescription>Si se deja vacío, la IA generará una imagen.</FormDescription>
                       <FormMessage />
                     </FormItem>
