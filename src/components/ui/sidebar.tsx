@@ -175,23 +175,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, open, setOpen, openMobile, setOpenMobile } = useSidebar();
-    const [isHovered, setIsHovered] = React.useState(false);
-
-    const handleMouseEnter = () => {
-        if (state === 'collapsed') {
-            setIsHovered(true);
-            setOpen(true);
-        }
-    };
-
-    const handleMouseLeave = () => {
-        if (isHovered) {
-            setIsHovered(false);
-            setOpen(false);
-        }
-    };
-
+    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
     if (collapsible === "none") {
       return (
@@ -236,8 +220,6 @@ const Sidebar = React.forwardRef<
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
         {/* This is what handles the sidebar gap on desktop */}
         <div
