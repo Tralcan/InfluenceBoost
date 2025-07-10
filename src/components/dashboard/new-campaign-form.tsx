@@ -32,7 +32,10 @@ const newCampaignSchema = z.object({
     (val) => (val === '' || val === undefined ? null : Number(val)),
     z.number().int().nonnegative({ message: 'Debe ser un número positivo.' }).nullable().optional()
   ),
-  image_url: z.string().url({ message: "Por favor, introduce una URL válida." }).or(z.literal('')).optional(),
+  image_url: z.preprocess(
+    (val) => (val === '' || val === undefined ? null : val),
+    z.string().url({ message: "Por favor, introduce una URL válida." }).nullable().optional(),
+  ),
 });
 
 type NewCampaignFormValues = z.infer<typeof newCampaignSchema>;
@@ -48,7 +51,7 @@ export function NewCampaignForm() {
       name: '',
       description: '',
       discount: '',
-      image_url: '',
+      image_url: null,
       max_influencers: 100,
     },
   });
@@ -71,7 +74,7 @@ export function NewCampaignForm() {
       end_date: formatISO(data.dateRange.to),
       discount: data.discount,
       max_influencers: data.max_influencers,
-      image_url: data.image_url || '',
+      image_url: data.image_url,
     };
 
     const result = await createCampaignAction(campaignData);
@@ -199,7 +202,7 @@ export function NewCampaignForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>
-                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} /></FormControl>
+                      <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} value={field.value ?? ''} /></FormControl>
                       <FormDescription>Si se deja vacío, la IA generará una imagen.</FormDescription>
                       <FormMessage />
                     </FormItem>

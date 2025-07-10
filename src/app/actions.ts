@@ -43,12 +43,12 @@ export async function createCampaignAction(
             finalImageUrl = imageResult.imageUrl;
         } else {
             console.warn("DEBUG: La generación de imágenes de IA no devolvió una URL. Se usará una URL vacía.");
-            finalImageUrl = '';
+            finalImageUrl = null;
         }
 
       } catch (genError) {
          console.error('DEBUG: Error generando la imagen de la campaña:', genError);
-         finalImageUrl = '';
+         finalImageUrl = null;
       }
     } else {
         console.log("DEBUG: Se proporcionó una URL de imagen, se saltará la generación de IA.");
