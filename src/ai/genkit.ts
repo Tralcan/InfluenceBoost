@@ -3,5 +3,7 @@ import {googleAI} from '@genkit-ai/googleai';
 
 export const ai = genkit({
   plugins: [googleAI({apiKey: process.env.GOOGLE_API_KEY})],
-  model: 'googleai/gemini-2.0-flash',
+  // This default model is used for text generation.
+  // Specific models for images, etc., are defined where they are used.
+  model: 'googleai/gemini-pro',
 });
