@@ -1,9 +1,7 @@
 import { Header } from '@/components/header';
-import { Logo } from '@/components/logo';
 import {
   SidebarProvider,
   Sidebar,
-  SidebarHeader,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -11,6 +9,7 @@ import {
   SidebarInset,
   SidebarFooter,
   SidebarSeparator,
+  SidebarHeader,
 } from '@/components/ui/sidebar';
 import {
   PlusCircle,
@@ -29,7 +28,7 @@ export default function DashboardLayout({
     <SidebarProvider defaultOpen={false}>
       <Sidebar>
         <SidebarHeader>
-          <Logo />
+           {/* El logo se ha movido al componente Header */}
         </SidebarHeader>
         <SidebarSeparator />
         <SidebarContent>
