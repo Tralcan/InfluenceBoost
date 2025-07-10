@@ -20,10 +20,6 @@ const SuggestDiscountInputSchema = z.object({
     .string()
     .optional()
     .describe('Datos históricos de campañas anteriores, si están disponibles.'),
-  currentDiscount: z
-    .number()
-    .optional()
-    .describe('El importe del descuento actual que se ofrece como porcentaje'),
 });
 export type SuggestDiscountInput = z.infer<typeof SuggestDiscountInputSchema>;
 
@@ -54,11 +50,10 @@ const prompt = ai.definePrompt({
   output: {schema: SuggestDiscountOutputSchema},
   prompt: `Eres un asistente de marketing de IA que proporciona sugerencias para el descuento y el lenguaje de marketing óptimos para campañas de marketing.
 
-  Basándote en los objetivos de la campaña, los datos históricos y el descuento actual (si está disponible), recomienda el mejor porcentaje de descuento a ofrecer y crea un lenguaje de marketing convincente.
+  Basándote en los objetivos de la campaña y los datos históricos (si están disponibles), recomienda el mejor porcentaje de descuento a ofrecer y crea un lenguaje de marketing convincente.
 
   Objetivo de la Campaña: {{{campaignGoal}}}
   Datos Históricos: {{{historicalData}}}
-  Descuento Actual: {{{currentDiscount}}}
 
   Considera lo siguiente al determinar el descuento:
   - ¿Qué descuento es probable que sea más efectivo para alcanzar el objetivo de la campaña?
