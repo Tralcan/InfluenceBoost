@@ -1,5 +1,5 @@
 'use client';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,11 @@ import { registerInfluencerAction } from '@/app/actions';
 import { Loader2 } from 'lucide-react';
 import type { Campaign } from '@/lib/types';
 import Image from 'next/image';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,8 +24,32 @@ function SubmitButton() {
   );
 }
 
+const initialState = {
+  success: false,
+  code: null,
+  error: null,
+};
+
+
 export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
+  const router = useRouter();
+  const { toast } = useToast();
   const action = registerInfluencerAction.bind(null, campaign.id);
+  const [state, formAction] = useFormState(action, initialState);
+
+  useEffect(() => {
+    if (state.success && state.code) {
+      router.push(`/campaign/${campaign.id}/success?code=${state.code}`);
+    }
+    if (!state.success && state.error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error en el Registro',
+        description: state.error,
+      });
+    }
+  }, [state, router, campaign.id, toast]);
+
 
   return (
     <Card className="w-full max-w-lg mx-auto">
@@ -28,12 +57,13 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
         {campaign.image_url && (
             <div className="aspect-video overflow-hidden rounded-lg border">
                 <Image
-                    data-ai-hint="company logo"
+                    data-ai-hint="campaign image"
                     src={campaign.image_url}
                     alt={campaign.name}
                     width={1200}
                     height={630}
                     className="object-cover"
+                    priority
                 />
             </div>
         )}
@@ -44,7 +74,7 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
         <CardDescription>{campaign.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={action} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre Completo</Label>
             <Input id="name" name="name" placeholder="Juan Pérez" required />
@@ -58,6 +88,13 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
             <Input id="socialMedia" name="socialMedia" placeholder="@juanperez" required />
           </div>
           <SubmitButton />
+           {state.error && (
+             <Alert variant="destructive" className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{state.error}</AlertDescription>
+            </Alert>
+           )}
         </form>
       </CardContent>
     </Card>

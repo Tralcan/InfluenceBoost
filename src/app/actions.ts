@@ -1,6 +1,7 @@
 'use server';
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
+import { generateCampaignImage } from '@/ai/flows/generate-campaign-image-flow';
 import { createCampaign, registerInfluencer } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -22,11 +23,23 @@ export async function createCampaignAction(
   data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   try {
-    const newCampaign = await createCampaign(data);
+    let finalData = { ...data };
+    
+    // Si no se proporciona una URL de imagen, generarla con IA
+    if (!finalData.image_url || finalData.image_url.startsWith('https://placehold.co')) {
+      console.log("Generating AI image for campaign...");
+      const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
+      finalData.image_url = imageResult.imageUrl;
+    }
+
+    const newCampaign = await createCampaign(finalData);
     revalidatePath('/dashboard');
     return { success: true, data: newCampaign };
   } catch (error) {
     console.error('Error creating campaign:', error);
+    if (error instanceof Error) {
+        return { success: false, error: error.message };
+    }
     return { success: false, error: 'No se pudo crear la campaña.' };
   }
 }
@@ -46,7 +59,8 @@ export async function registerInfluencerAction(
     try {
         const newInfluencer = await registerInfluencer(campaignId, { name, email, social_media: socialMedia });
         revalidatePath(`/dashboard/campaigns/${campaignId}`);
-        redirect(`/campaign/${campaignId}/success?code=${newInfluencer.generated_code}`);
+        // No redirigir directamente aquí. Devolver el código para que el cliente redirija.
+        return { success: true, code: newInfluencer.generated_code };
     } catch (error) {
         console.error('Error registering influencer:', error);
         if (error instanceof Error) {
