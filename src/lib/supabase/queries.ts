@@ -68,17 +68,27 @@ export async function updateCampaign(
   id: string,
   data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id'>>
 ): Promise<Campaign> {
-  const { data: updatedCampaign, error } = await supabase
+  const { error: updateError } = await supabase
     .from('campaigns')
     .update(data)
-    .eq('id', id)
-    .select()
-    .single();
+    .eq('id', id);
 
-  if (error) {
-    console.error('Error updating campaign:', error);
+  if (updateError) {
+    console.error('Error updating campaign:', updateError);
     throw new Error('Error al actualizar la campaña en la base de datos.');
   }
+
+  const { data: updatedCampaign, error: selectError } = await supabase
+    .from('campaigns')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (selectError) {
+      console.error('Error refetching campaign after update:', selectError);
+      throw new Error('No se pudo obtener la campaña actualizada.');
+  }
+  
   return updatedCampaign;
 }
 
