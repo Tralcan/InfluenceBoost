@@ -30,7 +30,7 @@ export type Campaign = {
   end_date: string; // ISO 8601 string
   discount: string;
   max_influencers: number | null;
-  image_url: string;
+  image_url: string | null;
   created_at: string;
 };
 

@@ -30,7 +30,7 @@ export async function createCampaignAction(
   try {
     let finalImageUrl = data.image_url;
 
-    if (finalImageUrl === '') {
+    if (!finalImageUrl) {
       console.log("DEBUG: No se proporcionó URL de imagen. Activando la generación de imágenes de IA para la campaña:", data.name);
       try {
         const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
@@ -53,11 +53,11 @@ export async function createCampaignAction(
 
     const campaignToCreate = {
         ...data,
-        image_url: finalImageUrl || '', // Ensure it's never undefined
+        image_url: finalImageUrl,
         max_influencers: data.max_influencers === null || data.max_influencers === undefined ? 0 : data.max_influencers,
     };
     
-    console.log("DEBUG: Datos finales a guardar en la base de datos (longitud de URL):", campaignToCreate.image_url.length);
+    console.log("DEBUG: Datos finales a guardar en la base de datos (longitud de URL):", campaignToCreate.image_url ? campaignToCreate.image_url.length : 0);
 
     const newCampaign = await createCampaign(campaignToCreate);
     revalidatePath('/dashboard');
@@ -73,10 +73,15 @@ export async function createCampaignAction(
 
 export async function updateCampaignAction(
   campaignId: string,
-  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id' | 'image_url'>>
+  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id'>>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   try {
-    const updatedCampaign = await updateCampaign(campaignId, data);
+    const campaignData = {
+        ...data,
+        max_influencers: data.max_influencers === null || data.max_influencers === undefined ? 0 : data.max_influencers,
+    };
+    
+    const updatedCampaign = await updateCampaign(campaignId, campaignData);
     revalidatePath(`/dashboard/campaigns/${campaignId}`);
     revalidatePath('/dashboard');
     return { success: true, data: updatedCampaign };

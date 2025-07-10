@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -32,6 +32,7 @@ const editCampaignSchema = z.object({
     (val) => (val === '' || val === undefined || val === null ? null : Number(val)),
     z.number().int().nonnegative({ message: 'Debe ser un número positivo.' }).nullable().optional()
   ),
+  image_url: z.string().url({ message: "Por favor, introduce una URL válida." }).or(z.literal('')).nullable().optional(),
 });
 
 type EditCampaignFormValues = z.infer<typeof editCampaignSchema>;
@@ -48,6 +49,7 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
       description: campaign.description,
       discount: campaign.discount,
       max_influencers: campaign.max_influencers ?? 0,
+      image_url: campaign.image_url,
       dateRange: {
         from: parseISO(campaign.start_date),
         to: parseISO(campaign.end_date),
@@ -64,7 +66,7 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
       end_date: formatISO(data.dateRange.to),
       discount: data.discount,
       max_influencers: data.max_influencers,
-      // image_url no es editable en este formulario
+      image_url: data.image_url,
     };
 
     const result = await updateCampaignAction(campaign.id, campaignData);
@@ -178,6 +180,18 @@ export function EditCampaignForm({ campaign }: { campaign: Campaign }) {
                 <FormItem>
                   <FormLabel>Máx. Influencers (Opcional)</FormLabel>
                   <FormControl><Input type="number" placeholder="ej., 100" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value)} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="image_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL de la Imagen de la Campaña (Opcional)</FormLabel>
+                  <FormControl><Input placeholder="https://tu-url-de-imagen.com/imagen.png" {...field} value={field.value ?? ''} /></FormControl>
+                  <FormDescription>Si se deja vacío, la IA generará una imagen al crear una nueva campaña.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

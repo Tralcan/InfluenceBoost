@@ -66,7 +66,7 @@ export async function createCampaign(
 
 export async function updateCampaign(
   id: string,
-  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id' | 'image_url'>>
+  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id'>>
 ): Promise<Campaign> {
   const { data: updatedCampaign, error } = await supabase
     .from('campaigns')
