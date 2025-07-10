@@ -24,6 +24,7 @@ const GenerateCampaignImageOutputSchema = z.object({
 export type GenerateCampaignImageOutput = z.infer<typeof GenerateCampaignImageOutputSchema>;
 
 export async function generateCampaignImage(input: GenerateCampaignImageInput): Promise<GenerateCampaignImageOutput> {
+  console.log("DEBUG: Iniciando el flujo generateCampaignImage con la entrada:", input);
   return generateCampaignImageFlow(input);
 }
 
@@ -34,6 +35,7 @@ const generateCampaignImageFlow = ai.defineFlow(
     outputSchema: GenerateCampaignImageOutputSchema,
   },
   async ({ name, description }) => {
+    console.log("DEBUG: Dentro de generateCampaignImageFlow. Llamando a la API de generación de IA.");
     const { media } = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: `Generate a visually appealing and professional marketing banner image for a campaign. The image should be abstract or conceptual, suitable for a social media banner (16:9 aspect ratio).
@@ -48,9 +50,11 @@ const generateCampaignImageFlow = ai.defineFlow(
     });
 
     if (!media?.url) {
+        console.error('DEBUG: La generación de imágenes falló o no devolvió URL.');
         throw new Error('Image generation failed or returned no URL.');
     }
 
+    console.log("DEBUG: La API de generación devolvió una URL de imagen. Longitud:", media.url.length);
     return { imageUrl: media.url };
   }
 );
