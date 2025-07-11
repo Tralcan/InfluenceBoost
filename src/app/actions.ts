@@ -3,10 +3,10 @@
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
 import { generateCampaignImage } from '@/ai/flows/generate-campaign-image-flow';
-import { createCampaign, registerInfluencerForCampaign, deleteCampaign, updateCampaign, incrementInfluencerCodeUsage } from '@/lib/supabase/queries';
+import { createCampaign, registerInfluencerForCampaign, deleteCampaign, updateCampaign, incrementInfluencerCodeUsage, getInfluencerByPhone } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { Campaign } from '@/lib/types';
+import type { Campaign, Influencer } from '@/lib/types';
 
 export async function suggestDiscountAction(
   input: SuggestDiscountInput
@@ -103,6 +103,7 @@ export async function registerInfluencerAction(
     prevState: any,
     formData: FormData
 ) {
+    const influencerId = formData.get('influencer_id') as string | null;
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const phone = formData.get('phone_number') as string;
@@ -111,7 +112,10 @@ export async function registerInfluencerAction(
     const x = formData.get('x_handle') as string;
     const other = formData.get('other_social_media') as string;
 
-    if (!name || !email) {
+    if (!phone) {
+        return { success: false, error: 'El celular es obligatorio.' };
+    }
+     if (!name || !email) {
         return { success: false, error: 'El nombre y el email son obligatorios.' };
     }
     if (!instagram && !tiktok && !x && !other) {
@@ -119,7 +123,8 @@ export async function registerInfluencerAction(
     }
 
     try {
-        const result = await registerInfluencerForCampaign(campaignId, { 
+        const result = await registerInfluencerForCampaign(campaignId, {
+            id: influencerId, 
             name, 
             email, 
             phone_number: phone,
@@ -168,4 +173,20 @@ export async function incrementUsageAction(participantId: string, influencerId: 
     }
     return { success: false, error: 'No se pudo registrar el uso.' };
   }
+}
+
+export async function findInfluencerByPhoneAction(phone: string): Promise<{ success: true; data: Influencer | null } | { success: false; error: string }> {
+    if (!phone) {
+        return { success: false, error: 'El número de teléfono es obligatorio.' };
+    }
+    try {
+        const influencer = await getInfluencerByPhone(phone);
+        return { success: true, data: influencer };
+    } catch (error) {
+        console.error('Error finding influencer by phone:', error);
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: 'Ocurrió un error al buscar el influencer.' };
+    }
 }

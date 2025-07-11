@@ -69,6 +69,21 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
     return data as CampaignParticipantInfo;
 }
 
+export async function getInfluencerByPhone(phone: string): Promise<Influencer | null> {
+    const { data, error } = await supabase
+        .from('influencers')
+        .select('*')
+        .eq('phone_number', phone)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error getting influencer by phone:', error);
+        throw new Error('Error al buscar al influencer.');
+    }
+
+    return data;
+}
+
 export async function createCampaign(
   data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
 ): Promise<Campaign> {
@@ -121,10 +136,11 @@ export async function updateCampaign(
 
 export async function registerInfluencerForCampaign(
     campaignId: string, 
-    influencerData: { 
+    influencerData: {
+        id: string | null;
         name: string, 
         email: string, 
-        phone_number: string | null,
+        phone_number: string,
         instagram_handle: string | null, 
         tiktok_handle: string | null, 
         x_handle: string | null,
@@ -136,31 +152,32 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada');
     }
 
-    // 1. Find the influencer by email OR phone number
     let influencer: Influencer | null = null;
     
-    // Construct the 'or' filter for the query
-    const orFilter = [`email.eq.${influencerData.email}`];
-    if (influencerData.phone_number) {
-        orFilter.push(`phone_number.eq.${influencerData.phone_number}`);
-    }
-
-    let { data: existingInfluencer, error: findError } = await supabase
-        .from('influencers')
-        .select('*')
-        .or(orFilter.join(','))
-        .limit(1)
-        .maybeSingle();
-
-    if (findError) {
-        console.error('Error finding influencer:', findError);
-        throw new Error('Error al buscar al influencer.');
-    }
-
-    influencer = existingInfluencer;
-
-    if (!influencer) {
-        // If not found, create a new one
+    // Si tenemos un ID, es porque el influencer fue encontrado y puede que haya actualizado sus datos.
+    if (influencerData.id) {
+        const { data: updatedInfluencer, error: updateError } = await supabase
+            .from('influencers')
+            .update({
+                name: influencerData.name,
+                email: influencerData.email,
+                phone_number: influencerData.phone_number,
+                instagram_handle: influencerData.instagram_handle,
+                tiktok_handle: influencerData.tiktok_handle,
+                x_handle: influencerData.x_handle,
+                other_social_media: influencerData.other_social_media,
+            })
+            .eq('id', influencerData.id)
+            .select()
+            .single();
+        
+        if (updateError) {
+            console.error('Error updating influencer:', updateError);
+            throw new Error('Error al actualizar los datos del influencer.');
+        }
+        influencer = updatedInfluencer;
+    } else {
+        // Si no hay ID, es un influencer nuevo
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -181,6 +198,10 @@ export async function registerInfluencerForCampaign(
         }
         influencer = newInfluencer;
     }
+    
+    if (!influencer) {
+        throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
+    }
 
     // 2. Check if the influencer is already in this campaign
     const { data: existingParticipant, error: checkError } = await supabase
@@ -188,9 +209,10 @@ export async function registerInfluencerForCampaign(
         .select('id')
         .eq('campaign_id', campaignId)
         .eq('influencer_id', influencer.id)
-        .single();
+        .maybeSingle();
     
-    if (checkError && checkError.code !== 'PGRST116') {
+    if (checkError) {
+      console.error("Error checking participation:", checkError);
       throw new Error('Error al verificar la participación.');
     }
 
@@ -233,53 +255,13 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
-    
-    const { data: participantData, error: fetchParticipantError } = await supabase
-        .from('campaign_influencers')
-        .select('uses')
-        .eq('id', participantId)
-        .single();
+    const { data: participant, error } = await supabase.rpc('increment_influencer_usage', { p_id: participantId, p_influencer_id: influencerId });
 
-    if (fetchParticipantError) {
-        console.error('Error fetching participant uses:', fetchParticipantError);
-        throw new Error('No se pudo obtener el participante para actualizarlo.');
+    if (error) {
+        console.error('Error incrementing usage with RPC:', error);
+        throw new Error('No se pudo registrar el uso.');
     }
     
-    const { data: influencerData, error: fetchInfluencerError } = await supabase
-        .from('influencers')
-        .select('points')
-        .eq('id', influencerId)
-        .single();
-        
-    if (fetchInfluencerError) {
-        console.error('Error fetching influencer points:', fetchInfluencerError);
-        throw new Error('No se pudo obtener el influencer para actualizarlo.');
-    }
-
-    const newUses = participantData.uses + 1;
-    const newPoints = influencerData.points + 10;
-
-    const { error: updateParticipantError } = await supabase
-        .from('campaign_influencers')
-        .update({ uses: newUses })
-        .eq('id', participantId);
-
-    if (updateParticipantError) {
-        console.error('Error updating participant uses:', updateParticipantError);
-        throw new Error('No se pudo actualizar el uso del código.');
-    }
-    
-    const { error: updateInfluencerError } = await supabase
-        .from('influencers')
-        .update({ points: newPoints })
-        .eq('id', influencerId);
-    
-    if (updateInfluencerError) {
-        console.error('Error updating influencer points:', updateInfluencerError);
-        throw new Error('No se pudieron actualizar los puntos del influencer.');
-    }
-
-    // We need to refetch the participant to get the updated data
     const { data: updatedParticipant, error: refetchError } = await supabase
         .from('campaign_influencers')
         .select(`
