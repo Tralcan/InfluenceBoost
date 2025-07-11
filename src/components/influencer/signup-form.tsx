@@ -82,6 +82,10 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
             <Input id="email" name="email" type="email" placeholder="juan.perez@ejemplo.com" required />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="phone_number">Celular (Opcional)</Label>
+            <Input id="phone_number" name="phone_number" type="tel" placeholder="+1 234 567 890" />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="instagram_handle">Instagram</Label>
             <Input id="instagram_handle" name="instagram_handle" placeholder="@usuario" />
           </div>

@@ -105,6 +105,7 @@ export async function registerInfluencerAction(
 ) {
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
+    const phone = formData.get('phone_number') as string;
     const instagram = formData.get('instagram_handle') as string;
     const tiktok = formData.get('tiktok_handle') as string;
     const x = formData.get('x_handle') as string;
@@ -121,6 +122,7 @@ export async function registerInfluencerAction(
         const result = await registerInfluencerForCampaign(campaignId, { 
             name, 
             email, 
+            phone_number: phone,
             instagram_handle: instagram,
             tiktok_handle: tiktok,
             x_handle: x,

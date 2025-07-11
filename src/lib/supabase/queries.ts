@@ -124,6 +124,7 @@ export async function registerInfluencerForCampaign(
     influencerData: { 
         name: string, 
         email: string, 
+        phone_number: string | null,
         instagram_handle: string | null, 
         tiktok_handle: string | null, 
         x_handle: string | null,
@@ -153,6 +154,7 @@ export async function registerInfluencerForCampaign(
             .insert({
                 name: influencerData.name,
                 email: influencerData.email,
+                phone_number: influencerData.phone_number,
                 instagram_handle: influencerData.instagram_handle,
                 tiktok_handle: influencerData.tiktok_handle,
                 x_handle: influencerData.x_handle,
@@ -219,20 +221,32 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
-  const { data, error } = await supabase.rpc('increment_usage_and_points', {
-    p_participant_id: participantId,
-    p_influencer_id: influencerId,
-    p_points_to_add: 10
-  });
+    const { data, error } = await supabase.rpc('increment_usage_and_points', {
+        p_participant_id: participantId,
+        p_influencer_id: influencerId,
+        p_points_to_add: 10
+    });
 
-  if (error) {
-    console.error('Error incrementing usage with RPC:', error);
-    throw new Error('No se pudo registrar el uso.');
-  }
+    if (error) {
+        console.error('Error incrementing usage with RPC:', error);
+        throw new Error('No se pudo registrar el uso.');
+    }
+    
+    // We need to refetch the participant to get the updated data
+    const { data: updatedParticipant, error: refetchError } = await supabase
+        .from('campaign_influencers')
+        .select(`
+            *,
+            campaigns ( * ),
+            influencers ( * )
+        `)
+        .eq('id', participantId)
+        .single();
 
-  const updatedParticipant = await getParticipantByCode(data.generated_code);
-  if (!updatedParticipant) {
-    throw new Error('No se pudo recargar la información del participante tras la actualización.');
-  }
-  return updatedParticipant;
+    if (refetchError || !updatedParticipant) {
+        console.error('Error refetching participant after usage increment:', refetchError);
+        throw new Error('No se pudo recargar la información del participante tras la actualización.');
+    }
+
+    return updatedParticipant as CampaignParticipantInfo;
 }

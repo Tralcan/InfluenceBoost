@@ -9,6 +9,7 @@ export type Influencer = {
   id: string; // uuid, primary key
   name: string;
   email: string;
+  phone_number: string | null;
   tiktok_handle: string | null;
   instagram_handle: string | null;
   x_handle: string | null;
