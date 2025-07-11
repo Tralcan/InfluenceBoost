@@ -1,3 +1,4 @@
+
 'use client';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { registerInfluencerAction, findInfluencerByPhoneAction } from '@/app/actions';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Campaign } from '@/lib/types';
 import Image from 'next/image';
 import { useEffect, useState, useTransition } from 'react';
@@ -36,11 +37,9 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
   const [state, formAction] = useFormState(registerInfluencerAction.bind(null, campaign.id), initialState);
 
   const [phone, setPhone] = useState('');
-  const [phoneSearched, setPhoneSearched] = useState(false);
   const [foundInfluencer, setFoundInfluencer] = useState<any>(null);
   const [isSearching, startSearchTransition] = useTransition();
 
-  // States for form fields to allow dynamic updates
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -68,7 +67,6 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
         } else {
             setFoundInfluencer(null);
         }
-        setPhoneSearched(true);
       });
     }
   };
@@ -115,6 +113,16 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
           
           <input type="hidden" name="influencer_id" value={foundInfluencer?.id || ''} />
 
+           {foundInfluencer && (
+                <Alert variant="default" className="bg-primary/10 border-primary/20">
+                    <AlertCircle className="h-4 w-4 text-primary" />
+                    <AlertTitle className='text-primary'>¡Hola de nuevo, {foundInfluencer.name}!</AlertTitle>
+                    <AlertDescription>
+                        Hemos rellenado tus datos. Puedes actualizarlos si es necesario.
+                    </AlertDescription>
+                </Alert>
+            )}
+
           <div className="space-y-2">
             <Label htmlFor="phone_number">Celular</Label>
             <div className='flex items-center gap-2'>
@@ -122,7 +130,7 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
                 id="phone_number" 
                 name="phone_number" 
                 type="tel" 
-                placeholder="Tu número de celular" 
+                placeholder="Ej: +56912345678" 
                 required 
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -132,48 +140,35 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
                {isSearching && <Loader2 className="h-5 w-5 animate-spin" />}
             </div>
              <p className="text-xs text-muted-foreground">
-                Introduce tu celular para ver si ya estás registrado/a.
+                Introduce tu celular (incluyendo código de país) para ver si ya estás registrado/a.
             </p>
           </div>
 
-          {phoneSearched && (
-             <div className="space-y-4 animate-in fade-in-50">
-                {foundInfluencer && (
-                    <Alert variant="default" className="bg-primary/10 border-primary/20">
-                        <AlertCircle className="h-4 w-4 text-primary" />
-                        <AlertTitle className='text-primary'>¡Hola de nuevo, {foundInfluencer.name}!</AlertTitle>
-                        <AlertDescription>
-                            Hemos rellenado tus datos. Puedes actualizarlos si es necesario.
-                        </AlertDescription>
-                    </Alert>
-                )}
-                <div className="space-y-2">
-                    <Label htmlFor="name">Nombre Completo</Label>
-                    <Input id="name" name="name" placeholder="Juan Pérez" required value={name} onChange={e => setName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" name="email" type="email" placeholder="juan.perez@ejemplo.com" required value={email} onChange={e => setEmail(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="instagram_handle">Instagram</Label>
-                    <Input id="instagram_handle" name="instagram_handle" placeholder="@usuario" value={instagram} onChange={e => setInstagram(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="tiktok_handle">TikTok</Label>
-                    <Input id="tiktok_handle" name="tiktok_handle" placeholder="@usuario" value={tiktok} onChange={e => setTiktok(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="x_handle">X (Twitter)</Label>
-                    <Input id="x_handle" name="x_handle" placeholder="@usuario" value={x} onChange={e => setX(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="other_social_media">Otro (ej. YouTube, Blog)</Label>
-                    <Input id="other_social_media" name="other_social_media" placeholder="URL o usuario" value={other} onChange={e => setOther(e.target.value)} />
-                </div>
-                <SubmitButton />
-            </div>
-          )}
+          <div className="space-y-2">
+              <Label htmlFor="name">Nombre Completo</Label>
+              <Input id="name" name="name" placeholder="Juan Pérez" required value={name} onChange={e => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" placeholder="juan.perez@ejemplo.com" required value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="instagram_handle">Instagram</Label>
+              <Input id="instagram_handle" name="instagram_handle" placeholder="@usuario" value={instagram} onChange={e => setInstagram(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="tiktok_handle">TikTok</Label>
+              <Input id="tiktok_handle" name="tiktok_handle" placeholder="@usuario" value={tiktok} onChange={e => setTiktok(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="x_handle">X (Twitter)</Label>
+              <Input id="x_handle" name="x_handle" placeholder="@usuario" value={x} onChange={e => setX(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="other_social_media">Otro (ej. YouTube, Blog)</Label>
+              <Input id="other_social_media" name="other_social_media" placeholder="URL o usuario" value={other} onChange={e => setOther(e.target.value)} />
+          </div>
+          <SubmitButton />
 
            {state.error && (
              <Alert variant="destructive" className="mt-4">
