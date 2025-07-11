@@ -19,6 +19,7 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Logo } from '@/components/logo';
 
 export default function DashboardLayout({
   children,
@@ -26,10 +27,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-           {/* El logo se ha movido al componente Header */}
+           <Logo />
         </SidebarHeader>
         <SidebarSeparator />
         <SidebarContent>
