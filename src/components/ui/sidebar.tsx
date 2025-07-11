@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -53,7 +54,7 @@ const SidebarProvider = React.forwardRef<
     ref
   ) => {
     const isMobile = useIsMobile()
-    const [_open, _setOpen] = React.useState(false)
+    const [_open, _setOpen] = React.useState(true)
 
     // Sync controlled and uncontrolled states.
     const open = openProp !== undefined ? openProp : _open
@@ -129,7 +130,7 @@ const Sidebar = React.forwardRef<
               <SheetContent
                 ref={ref}
                 side="left"
-                className="w-[240px] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+                className="w-[210px] bg-sidebar p-0 text-sidebar-foreground"
               >
                 <div className="flex h-full w-full flex-col">{children}</div>
               </SheetContent>
@@ -141,7 +142,7 @@ const Sidebar = React.forwardRef<
         <div
          ref={ref}
          data-collapsed={!open}
-         className={cn("hidden md:flex flex-col h-full w-[240px] border-r bg-background transition-[width] data-[collapsed=true]:w-14", className)}
+         className={cn("hidden md:flex flex-col h-full w-[210px] border-r bg-background transition-[width] data-[collapsed=true]:w-0 data-[collapsed=true]:invisible data-[collapsed=true]:opacity-0", className)}
          {...props}
         >
           {children}
@@ -155,8 +156,27 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, open, setOpen } = useSidebar()
+  const isMobile = useIsMobile()
 
+  if (isMobile) {
+    return (
+        <SheetTrigger asChild>
+            <Button
+                ref={ref}
+                data-sidebar="trigger"
+                variant="ghost"
+                size="icon"
+                className={cn("h-8 w-8", className)}
+                {...props}
+            >
+                <PanelLeft />
+                <span className="sr-only">Toggle Sidebar</span>
+            </Button>
+        </SheetTrigger>
+    )
+  }
+  
   return (
     <Button
         ref={ref}
@@ -376,3 +396,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+    
