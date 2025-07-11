@@ -176,10 +176,11 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 
 
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-    // We use the public client to call the RPC function.
-    // Permissions are handled by PostgreSQL, granting the 'anon' role
-    // EXECUTE permission on this specific function.
-    const { data, error } = await supabase.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
+    // The RPC function expects a parameter named 'influencer_id'.
+    // We pass it in an object. The key must match the parameter name in the SQL function.
+    const { data, error } = await supabase.rpc('increment_influencer_usage', {
+      influencer_id: influencerId
+    });
 
     if (error) {
         console.error('Error incrementing usage with RPC:', error);
@@ -187,10 +188,10 @@ export async function incrementInfluencerCodeUsage(influencerId: string): Promis
     }
 
     // The RPC function returns the updated influencer record
-    if (!data || data.length === 0) {
+    if (!data) {
         throw new Error('No se pudo obtener el influencer actualizado después del incremento.');
     }
 
-    // The RPC function returns an array with a single object.
-    return data[0] as Influencer;
+    // The RPC function call now returns a single object, not an array.
+    return data as Influencer;
 }
