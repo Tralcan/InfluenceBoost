@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
@@ -22,7 +24,6 @@ import {
   PanelLeft,
 } from 'lucide-react';
 import Link from 'next/link';
-import { Logo } from '@/components/logo';
 
 export default function DashboardLayout({
   children,
@@ -54,6 +55,9 @@ export default function DashboardLayout({
                 side="left"
                 className="w-[150px] bg-sidebar p-0 text-sidebar-foreground"
             >
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                </SheetHeader>
                 <SidebarContent>
                 <SidebarMenu>
                     <SidebarMenuItem>
