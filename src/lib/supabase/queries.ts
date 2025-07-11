@@ -1,6 +1,7 @@
 'use server';
 
 import { supabase } from './client';
+import { supabaseAdmin } from './admin';
 import type { Campaign, CampaignWithInfluencers, Influencer, InfluencerWithCampaign } from '../types';
 
 export async function getCampaigns(): Promise<CampaignWithInfluencers[]> {
@@ -175,7 +176,8 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 
 
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-    const { data, error } = await supabase.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
+    // Use the admin client to bypass RLS for this specific, trusted operation.
+    const { data, error } = await supabaseAdmin.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
 
     if (error) {
         console.error('Error incrementing usage with RPC:', error);
