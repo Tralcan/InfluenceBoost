@@ -2,7 +2,6 @@
 'use server';
 
 import { supabase } from './client';
-import { supabaseAdmin } from './admin';
 import type { Campaign, CampaignWithInfluencers, Influencer, InfluencerWithCampaign } from '../types';
 
 export async function getCampaigns(): Promise<CampaignWithInfluencers[]> {
@@ -177,15 +176,10 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 
 
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || supabaseUrl.includes('YOUR_SUPABASE_URL') || !supabaseServiceRoleKey || supabaseServiceRoleKey.includes('YOUR_SUPABASE_SERVICE_ROLE_KEY')) {
-        throw new Error('Las credenciales de administrador de Supabase no están configuradas en el entorno. No se puede incrementar el uso.');
-    }
-
-    // Use the admin client to bypass RLS for this specific, trusted operation.
-    const { data, error } = await supabaseAdmin.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
+    // We use the public client to call the RPC function.
+    // Permissions are handled by PostgreSQL, granting the 'anon' role
+    // EXECUTE permission on this specific function.
+    const { data, error } = await supabase.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
 
     if (error) {
         console.error('Error incrementing usage with RPC:', error);
@@ -197,5 +191,6 @@ export async function incrementInfluencerCodeUsage(influencerId: string): Promis
         throw new Error('No se pudo obtener el influencer actualizado después del incremento.');
     }
 
+    // The RPC function returns an array with a single object.
     return data[0] as Influencer;
 }
