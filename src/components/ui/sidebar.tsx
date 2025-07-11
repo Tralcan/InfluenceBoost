@@ -9,10 +9,8 @@ import { PanelLeft } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
   TooltipContent,
@@ -53,8 +51,7 @@ const SidebarProvider = React.forwardRef<
     },
     ref
   ) => {
-    const isMobile = useIsMobile()
-    const [_open, _setOpen] = React.useState(true)
+    const [_open, _setOpen] = React.useState(false)
 
     // Sync controlled and uncontrolled states.
     const open = openProp !== undefined ? openProp : _open
@@ -65,11 +62,6 @@ const SidebarProvider = React.forwardRef<
         _setOpen(value)
       }
     }
-
-    // Default to open on desktop and closed on mobile.
-    React.useEffect(() => {
-      setOpen(!isMobile)
-    }, [isMobile])
 
     const toggleSidebar = React.useCallback(() => {
       setOpen(!open)
@@ -122,31 +114,17 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { open, setOpen } = useSidebar()
-    const isMobile = useIsMobile()
-    
-    if(isMobile) {
-        return (
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetContent
-                ref={ref}
-                side="left"
-                className="w-[210px] bg-sidebar p-0 text-sidebar-foreground"
-              >
-                <div className="flex h-full w-full flex-col">{children}</div>
-              </SheetContent>
-            </Sheet>
-        )
-    }
     
     return (
-        <div
-         ref={ref}
-         data-collapsed={!open}
-         className={cn("hidden md:flex flex-col h-full w-[210px] border-r bg-background transition-[width] data-[collapsed=true]:w-0 data-[collapsed=true]:invisible data-[collapsed=true]:opacity-0", className)}
-         {...props}
-        >
-          {children}
-        </div>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent
+            ref={ref}
+            side="left"
+            className="w-[150px] bg-sidebar p-0 text-sidebar-foreground"
+          >
+            <div className="flex h-full w-full flex-col">{children}</div>
+          </SheetContent>
+        </Sheet>
     )
   }
 )
@@ -155,44 +133,21 @@ Sidebar.displayName = "Sidebar"
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
->(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar, open, setOpen } = useSidebar()
-  const isMobile = useIsMobile()
-
-  if (isMobile) {
-    return (
-        <SheetTrigger asChild>
-            <Button
-                ref={ref}
-                data-sidebar="trigger"
-                variant="ghost"
-                size="icon"
-                className={cn("h-8 w-8", className)}
-                {...props}
-            >
-                <PanelLeft />
-                <span className="sr-only">Toggle Sidebar</span>
-            </Button>
-        </SheetTrigger>
-    )
-  }
-  
+>(({ className, ...props }, ref) => {  
   return (
-    <Button
-        ref={ref}
-        data-sidebar="trigger"
-        variant="ghost"
-        size="icon"
-        className={cn("h-8 w-8", className)}
-        onClick={(event) => {
-          onClick?.(event)
-          toggleSidebar()
-        }}
-        {...props}
-      >
-        <PanelLeft />
-        <span className="sr-only">Toggle Sidebar</span>
-      </Button>
+    <SheetTrigger asChild>
+        <Button
+            ref={ref}
+            data-sidebar="trigger"
+            variant="ghost"
+            size="icon"
+            className={cn("h-8 w-8", className)}
+            {...props}
+        >
+            <PanelLeft />
+            <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+    </SheetTrigger>
   )
 })
 SidebarTrigger.displayName = "SidebarTrigger"
@@ -396,5 +351,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
-    
