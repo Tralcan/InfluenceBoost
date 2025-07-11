@@ -1,3 +1,4 @@
+
 'use server';
 
 import { supabase } from './client';
@@ -176,6 +177,13 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 
 
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || supabaseUrl.includes('YOUR_SUPABASE_URL') || !supabaseServiceRoleKey || supabaseServiceRoleKey.includes('YOUR_SUPABASE_SERVICE_ROLE_KEY')) {
+        throw new Error('Las credenciales de administrador de Supabase no están configuradas en el entorno. No se puede incrementar el uso.');
+    }
+
     // Use the admin client to bypass RLS for this specific, trusted operation.
     const { data, error } = await supabaseAdmin.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
 
