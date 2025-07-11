@@ -136,19 +136,31 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada');
     }
 
-    // 1. Find or create the influencer by email
-    let { data: influencer, error: findError } = await supabase
+    // 1. Find the influencer by email OR phone number
+    let influencer: Influencer | null = null;
+    
+    // Construct the 'or' filter for the query
+    const orFilter = [`email.eq.${influencerData.email}`];
+    if (influencerData.phone_number) {
+        orFilter.push(`phone_number.eq.${influencerData.phone_number}`);
+    }
+
+    let { data: existingInfluencer, error: findError } = await supabase
         .from('influencers')
         .select('*')
-        .eq('email', influencerData.email)
-        .single();
+        .or(orFilter.join(','))
+        .limit(1)
+        .maybeSingle();
 
-    if (findError && findError.code !== 'PGRST116') {
+    if (findError) {
         console.error('Error finding influencer:', findError);
         throw new Error('Error al buscar al influencer.');
     }
 
+    influencer = existingInfluencer;
+
     if (!influencer) {
+        // If not found, create a new one
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -221,17 +233,52 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
-    const { data, error } = await supabase.rpc('increment_usage_and_points', {
-        p_participant_id: participantId,
-        p_influencer_id: influencerId,
-        p_points_to_add: 10
-    });
+    
+    const { data: participantData, error: fetchParticipantError } = await supabase
+        .from('campaign_influencers')
+        .select('uses')
+        .eq('id', participantId)
+        .single();
 
-    if (error) {
-        console.error('Error incrementing usage with RPC:', error);
-        throw new Error('No se pudo registrar el uso.');
+    if (fetchParticipantError) {
+        console.error('Error fetching participant uses:', fetchParticipantError);
+        throw new Error('No se pudo obtener el participante para actualizarlo.');
     }
     
+    const { data: influencerData, error: fetchInfluencerError } = await supabase
+        .from('influencers')
+        .select('points')
+        .eq('id', influencerId)
+        .single();
+        
+    if (fetchInfluencerError) {
+        console.error('Error fetching influencer points:', fetchInfluencerError);
+        throw new Error('No se pudo obtener el influencer para actualizarlo.');
+    }
+
+    const newUses = participantData.uses + 1;
+    const newPoints = influencerData.points + 10;
+
+    const { error: updateParticipantError } = await supabase
+        .from('campaign_influencers')
+        .update({ uses: newUses })
+        .eq('id', participantId);
+
+    if (updateParticipantError) {
+        console.error('Error updating participant uses:', updateParticipantError);
+        throw new Error('No se pudo actualizar el uso del código.');
+    }
+    
+    const { error: updateInfluencerError } = await supabase
+        .from('influencers')
+        .update({ points: newPoints })
+        .eq('id', influencerId);
+    
+    if (updateInfluencerError) {
+        console.error('Error updating influencer points:', updateInfluencerError);
+        throw new Error('No se pudieron actualizar los puntos del influencer.');
+    }
+
     // We need to refetch the participant to get the updated data
     const { data: updatedParticipant, error: refetchError } = await supabase
         .from('campaign_influencers')
