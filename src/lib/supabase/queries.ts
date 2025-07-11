@@ -1,7 +1,7 @@
 'use server';
 
 import { supabase } from './client';
-import type { Campaign, CampaignWithInfluencers, Influencer } from '../types';
+import type { Campaign, CampaignWithInfluencers, Influencer, InfluencerWithCampaign } from '../types';
 
 export async function getCampaigns(): Promise<CampaignWithInfluencers[]> {
   const { data: campaigns, error } = await supabase
@@ -39,6 +39,27 @@ export async function getCampaignById(id: string): Promise<CampaignWithInfluence
   }
 
   return data as CampaignWithInfluencers;
+}
+
+export async function getInfluencerByCode(code: string): Promise<InfluencerWithCampaign | null> {
+    const { data, error } = await supabase
+        .from('influencers')
+        .select(`
+            *,
+            campaigns ( * )
+        `)
+        .eq('generated_code', code.toUpperCase())
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116') {
+            return null; // Not found, which is a valid search result
+        }
+        console.error('Error fetching influencer by code:', error);
+        throw new Error('No se pudo buscar el código del influencer.');
+    }
+    
+    return data as InfluencerWithCampaign;
 }
 
 
@@ -121,13 +142,16 @@ export async function registerInfluencer(
             tiktok_handle: influencerData.tiktok_handle,
             x_handle: influencerData.x_handle,
             other_social_media: influencerData.other_social_media,
-            generated_code: generatedCode,
+            generated_code: generatedCode.toUpperCase(),
         })
         .select()
         .single();
     
     if (error) {
         console.error('Error registering influencer:', error);
+        if (error.code === '23505') { // Unique constraint violation
+            throw new Error('Este email ya ha sido registrado para esta campaña.');
+        }
         throw new Error('No se pudo registrar al influencer.');
     }
 

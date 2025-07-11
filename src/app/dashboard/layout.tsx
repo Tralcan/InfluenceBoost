@@ -16,6 +16,7 @@ import {
   Settings,
   LifeBuoy,
   Home,
+  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -47,6 +48,14 @@ export default function DashboardLayout({
                 tooltip={{ children: 'Nueva Campaña' }}
               >
                 <Link href="/dashboard/campaigns/new"><PlusCircle />Nueva Campaña</Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                tooltip={{ children: 'Buscar Código' }}
+              >
+                <Link href="/dashboard/search-code"><Search />Buscar Código</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

@@ -39,3 +39,8 @@ export type Campaign = {
 export type CampaignWithInfluencers = Campaign & {
   influencers: Influencer[];
 };
+
+// This is a combined type for the code search result
+export type InfluencerWithCampaign = Influencer & {
+  campaigns: Campaign | null;
+};
