@@ -2,17 +2,15 @@
 'use server';
 
 import { supabase } from './client';
-import type { Campaign, CampaignParticipantInfo, CampaignWithParticipants, Influencer } from '../types';
+import type { Campaign, CampaignInfluencer, CampaignParticipantInfo, CampaignWithParticipants, Influencer } from '../types';
 
 export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
+  // Use count aggregation for campaign_influencers to get an accurate participant count
   const { data: campaigns, error } = await supabase
     .from('campaigns')
     .select(`
       *,
-      campaign_influencers (
-        *,
-        influencers ( name, email, instagram_handle, tiktok_handle, x_handle, other_social_media, points )
-      )
+      campaign_influencers ( count )
     `)
     .order('created_at', { ascending: false });
 
@@ -20,7 +18,21 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
     console.error('Error fetching campaigns:', error);
     throw new Error('No se pudieron obtener las campañas.');
   }
-  return campaigns as CampaignWithParticipants[];
+  
+  // The result needs to be mapped to the expected CampaignWithParticipants structure
+  const campaignsWithCount = campaigns.map(c => {
+    const { campaign_influencers, ...rest } = c;
+    const count = Array.isArray(campaign_influencers) ? (campaign_influencers[0]?.count ?? 0) : 0;
+    
+    return {
+      ...rest,
+      // We return an empty array for campaign_influencers to match the type,
+      // as the dashboard card only needs the count, not the full list.
+      campaign_influencers: new Array(count).fill(null),
+    };
+  });
+
+  return campaignsWithCount as unknown as CampaignWithParticipants[];
 }
 
 export async function getCampaignById(id: string): Promise<CampaignWithParticipants | null> {
@@ -154,10 +166,8 @@ export async function registerInfluencerForCampaign(
 
     let influencer: Influencer | null = null;
     
-    // Si tenemos un ID, es porque el influencer fue encontrado y puede que haya actualizado sus datos.
     if (influencerData.id) {
-        // Step 1: Update the influencer
-        const { error: updateError } = await supabase
+        const { data: updatedInfluencer, error: updateError } = await supabase
             .from('influencers')
             .update({
                 name: influencerData.name,
@@ -168,29 +178,17 @@ export async function registerInfluencerForCampaign(
                 x_handle: influencerData.x_handle,
                 other_social_media: influencerData.other_social_media,
             })
-            .eq('id', influencerData.id);
+            .eq('id', influencerData.id)
+            .select()
+            .single();
         
         if (updateError) {
             console.error('Error updating influencer:', updateError);
             throw new Error('Error al actualizar los datos del influencer.');
         }
-
-        // Step 2: Select the updated influencer data
-        const { data: updatedInfluencer, error: selectError } = await supabase
-            .from('influencers')
-            .select('*')
-            .eq('id', influencerData.id)
-            .single();
-
-        if (selectError) {
-            console.error('Error refetching influencer after update:', selectError);
-            throw new Error('No se pudo obtener la información actualizada del influencer.');
-        }
-        
         influencer = updatedInfluencer;
 
     } else {
-        // Si no hay ID, es un influencer nuevo
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -216,7 +214,6 @@ export async function registerInfluencerForCampaign(
         throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
     }
 
-    // 2. Check if the influencer is already in this campaign
     const { data: existingParticipant, error: checkError } = await supabase
         .from('campaign_influencers')
         .select('id')
@@ -233,7 +230,6 @@ export async function registerInfluencerForCampaign(
       throw new Error('Este influencer ya está registrado en esta campaña.');
     }
 
-    // 3. Create the campaign participant record
     const discountValue = campaign.discount.match(/\d+/)?.[0] || '10';
     const generatedCode = `${influencer.name.split(' ')[0].toUpperCase()}${discountValue}`;
 
