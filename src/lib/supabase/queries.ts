@@ -1,7 +1,6 @@
-
-
 'use server';
 
+import { createClient } from '@supabase/supabase-js';
 import { supabase } from './client';
 import type { Campaign, CampaignWithInfluencers, Influencer, InfluencerWithCampaign } from '../types';
 
@@ -175,22 +174,54 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
     }
 }
 
-
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-  const { data, error } = await supabase.rpc('increment_influencer_usage', {
-    p_influencer_id: influencerId,
-  });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (error) {
-    console.error('Error incrementing usage with RPC:', JSON.stringify(error, null, 2));
+  if (!supabaseUrl || !serviceRoleKey || serviceRoleKey.includes('YOUR_SUPABASE_SERVICE_ROLE_KEY')) {
+    console.error('Las credenciales de administrador de Supabase no están configuradas.');
+    throw new Error('La configuración del servidor está incompleta. No se puede registrar el uso.');
+  }
+
+  // Create a temporary admin client to perform this operation securely.
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+
+  try {
+    // 1. Fetch the current influencer data
+    const { data: influencer, error: fetchError } = await supabaseAdmin
+      .from('influencers')
+      .select('uses, points')
+      .eq('id', influencerId)
+      .single();
+
+    if (fetchError || !influencer) {
+      console.error('Error fetching influencer for update:', fetchError);
+      throw new Error('No se pudo encontrar el influencer para actualizar.');
+    }
+
+    // 2. Calculate new values
+    const newUses = influencer.uses + 1;
+    const newPoints = influencer.points + 10; // Assuming 10 points per use
+
+    // 3. Update the influencer with the new values
+    const { data: updatedInfluencer, error: updateError } = await supabaseAdmin
+      .from('influencers')
+      .update({ uses: newUses, points: newPoints })
+      .eq('id', influencerId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Error updating influencer usage:', updateError);
+      throw new Error('No se pudo actualizar el uso del código.');
+    }
+
+    return updatedInfluencer;
+  } catch (error) {
+    console.error('Error incrementing usage:', error);
+    if (error instanceof Error) {
+        throw error;
+    }
     throw new Error('No se pudo registrar el uso.');
   }
-
-  if (!data) {
-    throw new Error(
-      'No se pudo obtener el influencer actualizado después del incremento.'
-    );
-  }
-
-  return data as Influencer;
 }

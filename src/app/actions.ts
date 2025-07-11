@@ -160,7 +160,7 @@ export async function incrementUsageAction(influencerId: string, currentCode: st
     revalidatePath(`/dashboard/campaigns/${updatedInfluencer.campaign_id}`);
     return { success: true };
   } catch (error) {
-    console.error('Error incrementing usage:', error);
+    console.error('Error en incrementUsageAction:', error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
