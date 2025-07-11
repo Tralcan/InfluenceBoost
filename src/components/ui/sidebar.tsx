@@ -4,13 +4,9 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
 
-import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   Tooltip,
   TooltipContent,
@@ -100,58 +96,6 @@ const SidebarProvider = React.forwardRef<
 )
 SidebarProvider.displayName = "SidebarProvider"
 
-
-const Sidebar = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(
-  (
-    {
-      className,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const { open, setOpen } = useSidebar()
-    
-    return (
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent
-            ref={ref}
-            side="left"
-            className="w-[150px] bg-sidebar p-0 text-sidebar-foreground"
-          >
-            <div className="flex h-full w-full flex-col">{children}</div>
-          </SheetContent>
-        </Sheet>
-    )
-  }
-)
-Sidebar.displayName = "Sidebar"
-
-const SidebarTrigger = React.forwardRef<
-  React.ElementRef<typeof Button>,
-  React.ComponentProps<typeof Button>
->(({ className, ...props }, ref) => {  
-  return (
-    <SheetTrigger asChild>
-        <Button
-            ref={ref}
-            data-sidebar="trigger"
-            variant="ghost"
-            size="icon"
-            className={cn("h-8 w-8", className)}
-            {...props}
-        >
-            <PanelLeft />
-            <span className="sr-only">Toggle Sidebar</span>
-        </Button>
-    </SheetTrigger>
-  )
-})
-SidebarTrigger.displayName = "SidebarTrigger"
-
 const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -168,22 +112,6 @@ const SidebarInset = React.forwardRef<
   )
 })
 SidebarInset.displayName = "SidebarInset"
-
-const SidebarHeader = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
-  const { open } = useSidebar()
-  return (
-    <div
-      ref={ref}
-      data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-2 items-center", className, !open && "px-2 py-3")}
-      {...props}
-    />
-  )
-})
-SidebarHeader.displayName = "SidebarHeader"
 
 const SidebarFooter = React.forwardRef<
   HTMLDivElement,
@@ -338,16 +266,13 @@ const SidebarMenuButton = React.forwardRef<
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 export {
-  Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
   SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
   SidebarSeparator,
-  SidebarTrigger,
   useSidebar,
 }

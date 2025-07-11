@@ -1,7 +1,12 @@
 import { Header } from '@/components/header';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import {
   SidebarProvider,
-  Sidebar,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -14,6 +19,7 @@ import {
   LifeBuoy,
   Home,
   Search,
+  PanelLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -25,7 +31,21 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-muted/40">
-        <Sidebar>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed top-3 left-4 z-40 md:hidden"
+            >
+              <PanelLeft />
+              <span className="sr-only">Toggle Sidebar</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            className="w-[150px] bg-sidebar p-0 text-sidebar-foreground"
+          >
             <SidebarContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -59,7 +79,8 @@ export default function DashboardLayout({
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarFooter>
-        </Sidebar>
+          </SheetContent>
+        </Sheet>
          <div className="flex flex-col flex-1">
           <Header />
           <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
