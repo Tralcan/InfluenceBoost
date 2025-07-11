@@ -156,7 +156,8 @@ export async function registerInfluencerForCampaign(
     
     // Si tenemos un ID, es porque el influencer fue encontrado y puede que haya actualizado sus datos.
     if (influencerData.id) {
-        const { data: updatedInfluencer, error: updateError } = await supabase
+        // Step 1: Update the influencer
+        const { error: updateError } = await supabase
             .from('influencers')
             .update({
                 name: influencerData.name,
@@ -167,15 +168,27 @@ export async function registerInfluencerForCampaign(
                 x_handle: influencerData.x_handle,
                 other_social_media: influencerData.other_social_media,
             })
-            .eq('id', influencerData.id)
-            .select()
-            .single();
+            .eq('id', influencerData.id);
         
         if (updateError) {
             console.error('Error updating influencer:', updateError);
             throw new Error('Error al actualizar los datos del influencer.');
         }
+
+        // Step 2: Select the updated influencer data
+        const { data: updatedInfluencer, error: selectError } = await supabase
+            .from('influencers')
+            .select('*')
+            .eq('id', influencerData.id)
+            .single();
+
+        if (selectError) {
+            console.error('Error refetching influencer after update:', selectError);
+            throw new Error('No se pudo obtener la información actualizada del influencer.');
+        }
+        
         influencer = updatedInfluencer;
+
     } else {
         // Si no hay ID, es un influencer nuevo
         const { data: newInfluencer, error: createError } = await supabase
@@ -255,10 +268,10 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
-    const { data: participant, error } = await supabase.rpc('increment_influencer_usage', { p_id: participantId, p_influencer_id: influencerId });
+    const { error: rpcError } = await supabase.rpc('increment_influencer_usage', { p_id: participantId, p_influencer_id: influencerId });
 
-    if (error) {
-        console.error('Error incrementing usage with RPC:', error);
+    if (rpcError) {
+        console.error('Error incrementing usage with RPC:', rpcError);
         throw new Error('No se pudo registrar el uso.');
     }
     
