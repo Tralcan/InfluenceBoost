@@ -219,7 +219,6 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
-  // Use a transaction to ensure both updates succeed or fail together
   const { data, error } = await supabase.rpc('increment_usage_and_points', {
     p_participant_id: participantId,
     p_influencer_id: influencerId,
@@ -231,11 +230,9 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
     throw new Error('No se pudo registrar el uso.');
   }
 
-  // The RPC returns the updated participant info, so we can just return it.
-  // We need to fetch the relations again to match the expected type.
   const updatedParticipant = await getParticipantByCode(data.generated_code);
   if (!updatedParticipant) {
-    throw new Error('No se pudo recargar la información del participante tras la actualización.')
+    throw new Error('No se pudo recargar la información del participante tras la actualización.');
   }
   return updatedParticipant;
 }
