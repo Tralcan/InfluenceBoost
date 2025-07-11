@@ -182,17 +182,15 @@ export async function incrementInfluencerCodeUsage(influencerId: string): Promis
   });
 
   if (error) {
-    console.error('Error incrementing usage with RPC:', error);
+    console.error('Error incrementing usage with RPC:', JSON.stringify(error, null, 2));
     throw new Error('No se pudo registrar el uso.');
   }
 
-  // The RPC function returns the updated influencer record
   if (!data) {
     throw new Error(
       'No se pudo obtener el influencer actualizado después del incremento.'
     );
   }
 
-  // The RPC function call now returns a single object, not an array.
   return data as Influencer;
 }
