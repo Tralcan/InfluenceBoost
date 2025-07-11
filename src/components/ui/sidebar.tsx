@@ -14,105 +14,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-type SidebarContext = {
-  open: boolean
-  setOpen: (open: boolean) => void
-  toggleSidebar: () => void
-}
-
-const SidebarContext = React.createContext<SidebarContext | null>(null)
-
-function useSidebar() {
-  const context = React.useContext(SidebarContext)
-  if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
-  }
-  return context
-}
-
-const SidebarProvider = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
-    open?: boolean
-    onOpenChange?: (open: boolean) => void
-  }
->(
-  (
-    {
-      open: openProp,
-      onOpenChange: setOpenProp,
-      className,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const [_open, _setOpen] = React.useState(false)
-
-    // Sync controlled and uncontrolled states.
-    const open = openProp !== undefined ? openProp : _open
-    const setOpen = (value: boolean) => {
-      if (setOpenProp) {
-        setOpenProp(value)
-      } else {
-        _setOpen(value)
-      }
-    }
-
-    const toggleSidebar = React.useCallback(() => {
-      setOpen(!open)
-    }, [open])
-
-    React.useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "b" && (event.metaKey || event.ctrlKey)) {
-          event.preventDefault()
-          toggleSidebar()
-        }
-      }
-      window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
-
-    const contextValue = React.useMemo<SidebarContext>(
-      () => ({
-        open,
-        setOpen,
-        toggleSidebar,
-      }),
-      [open, setOpen, toggleSidebar]
-    )
-
-    return (
-      <SidebarContext.Provider value={contextValue}>
-        <TooltipProvider delayDuration={0}>
-          <div ref={ref} className={cn(className)} {...props}>
-            {children}
-          </div>
-        </TooltipProvider>
-      </SidebarContext.Provider>
-    )
-  }
-)
-SidebarProvider.displayName = "SidebarProvider"
-
-const SidebarInset = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
-        className
-      )}
-      {...props}
-    />
-  )
-})
-SidebarInset.displayName = "SidebarInset"
-
 const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
@@ -127,22 +28,6 @@ const SidebarFooter = React.forwardRef<
   )
 })
 SidebarFooter.displayName = "SidebarFooter"
-
-const SidebarSeparator = React.forwardRef<
-  React.ElementRef<typeof Separator>,
-  React.ComponentProps<typeof Separator>
->(({ className, ...props }, ref) => {
-  const { open } = useSidebar()
-  return (
-    <Separator
-      ref={ref}
-      data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className, !open && "mx-auto w-8")}
-      {...props}
-    />
-  )
-})
-SidebarSeparator.displayName = "SidebarSeparator"
 
 const SidebarContent = React.forwardRef<
   HTMLDivElement,
@@ -232,8 +117,7 @@ const SidebarMenuButton = React.forwardRef<
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
-    const { open } = useSidebar()
-
+    
     const button = (
       <Comp
         ref={ref}
@@ -247,19 +131,23 @@ const SidebarMenuButton = React.forwardRef<
       </Comp>
     )
 
-    if (open) return button;
+    if (!tooltip) {
+        return button;
+    }
 
     const tooltipContent = typeof tooltip === 'string' ? { children: tooltip } : tooltip;
 
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
-        <TooltipContent
-          side="right"
-          align="center"
-          {...tooltipContent}
-        />
-      </Tooltip>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>{button}</TooltipTrigger>
+                <TooltipContent
+                side="right"
+                align="center"
+                {...tooltipContent}
+                />
+            </Tooltip>
+        </TooltipProvider>
     )
   }
 )
@@ -268,11 +156,7 @@ SidebarMenuButton.displayName = "SidebarMenuButton"
 export {
   SidebarContent,
   SidebarFooter,
-  SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarProvider,
-  SidebarSeparator,
-  useSidebar,
 }

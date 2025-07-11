@@ -8,7 +8,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
-  SidebarProvider,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -37,7 +36,7 @@ export default function DashboardLayout({
         <div className="flex flex-col flex-1">
           <Header>
             <div className="flex items-center gap-4">
-              <SheetTrigger asChild>
+               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="shrink-0">
                   <PanelLeft />
                   <span className="sr-only">Toggle Sidebar</span>
