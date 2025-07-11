@@ -1,4 +1,6 @@
-import { Header } from '@/components/header';
+'use client';
+
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -30,15 +32,21 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleLinkClick = () => {
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
-      <Sheet>
+      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
         <div className="flex flex-col flex-1">
           <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
              <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="shrink-0">
                   <PanelLeft />
-                  <span className="sr-only">Toggle Sidebar</span>
+                  <span className="sr-only">Alternar Barra Lateral</span>
                 </Button>
               </SheetTrigger>
               <Link href="/dashboard">
@@ -54,13 +62,13 @@ export default function DashboardLayout({
           className="w-[240px] bg-sidebar p-0 text-sidebar-foreground"
         >
           <SheetHeader>
-            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <SheetTitle className="sr-only">Menú</SheetTitle>
           </SheetHeader>
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/dashboard">
+                  <Link href="/dashboard" onClick={handleLinkClick}>
                     <Home />
                     Panel
                   </Link>
@@ -68,7 +76,7 @@ export default function DashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/dashboard/campaigns/new">
+                  <Link href="/dashboard/campaigns/new" onClick={handleLinkClick}>
                     <PlusCircle />
                     Nueva Campaña
                   </Link>
@@ -76,7 +84,7 @@ export default function DashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/dashboard/search-code">
+                  <Link href="/dashboard/search-code" onClick={handleLinkClick}>
                     <Search />
                     Buscar Código
                   </Link>
@@ -88,7 +96,7 @@ export default function DashboardLayout({
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="#">
+                  <Link href="#" onClick={handleLinkClick}>
                     <Settings />
                     Ajustes
                   </Link>
@@ -96,7 +104,7 @@ export default function DashboardLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="#">
+                  <Link href="#" onClick={handleLinkClick}>
                     <LifeBuoy />
                     Ayuda
                   </Link>
