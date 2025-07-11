@@ -175,53 +175,31 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // This function calls a PostgreSQL function in Supabase.
+  // The function `increment_influencer_usage` must exist in the database.
+  // It handles the logic of incrementing uses and points securely on the server side.
+  // We grant EXECUTE permission on this function to the 'anon' role.
+  const { data, error } = await supabase.rpc('increment_influencer_usage', {
+    p_influencer_id: influencerId,
+  });
 
-  if (!supabaseUrl || !serviceRoleKey || serviceRoleKey.includes('YOUR_SUPABASE_SERVICE_ROLE_KEY')) {
-    console.error('Las credenciales de administrador de Supabase no están configuradas.');
-    throw new Error('La configuración del servidor está incompleta. No se puede registrar el uso.');
-  }
-
-  // Create a temporary admin client to perform this operation securely.
-  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-
-  try {
-    // 1. Fetch the current influencer data
-    const { data: influencer, error: fetchError } = await supabaseAdmin
-      .from('influencers')
-      .select('uses, points')
-      .eq('id', influencerId)
-      .single();
-
-    if (fetchError || !influencer) {
-      console.error('Error fetching influencer for update:', fetchError);
-      throw new Error('No se pudo encontrar el influencer para actualizar.');
-    }
-
-    // 2. Calculate new values
-    const newUses = influencer.uses + 1;
-    const newPoints = influencer.points + 10; // Assuming 10 points per use
-
-    // 3. Update the influencer with the new values
-    const { data: updatedInfluencer, error: updateError } = await supabaseAdmin
-      .from('influencers')
-      .update({ uses: newUses, points: newPoints })
-      .eq('id', influencerId)
-      .select()
-      .single();
-
-    if (updateError) {
-      console.error('Error updating influencer usage:', updateError);
-      throw new Error('No se pudo actualizar el uso del código.');
-    }
-
-    return updatedInfluencer;
-  } catch (error) {
-    console.error('Error incrementing usage:', error);
-    if (error instanceof Error) {
-        throw error;
-    }
+  if (error) {
+    console.error('Error incrementing usage with RPC:', error);
     throw new Error('No se pudo registrar el uso.');
   }
+
+  // The RPC function is designed to return the updated influencer row.
+  // We need to fetch it again to get the full updated object for revalidation.
+   const { data: updatedInfluencer, error: fetchError } = await supabase
+    .from('influencers')
+    .select('*')
+    .eq('id', influencerId)
+    .single();
+
+  if (fetchError) {
+      console.error('Error fetching updated influencer data:', fetchError);
+      throw new Error('Se registró el uso, pero no se pudo recargar la información actualizada.');
+  }
+
+  return updatedInfluencer;
 }
