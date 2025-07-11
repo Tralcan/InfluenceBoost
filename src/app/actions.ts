@@ -2,7 +2,7 @@
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
 import { generateCampaignImage } from '@/ai/flows/generate-campaign-image-flow';
-import { createCampaign, registerInfluencer, deleteCampaign, updateCampaign } from '@/lib/supabase/queries';
+import { createCampaign, registerInfluencer, deleteCampaign, updateCampaign, incrementInfluencerCodeUsage } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { Campaign } from '@/lib/types';
@@ -151,4 +151,19 @@ export async function deleteCampaignAction(
         }
         return { success: false, error: 'No se pudo eliminar la campaña.' };
     }
+}
+
+export async function incrementUsageAction(influencerId: string, currentCode: string): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const updatedInfluencer = await incrementInfluencerCodeUsage(influencerId);
+    revalidatePath(`/dashboard/search-code?code=${currentCode}`);
+    revalidatePath(`/dashboard/campaigns/${updatedInfluencer.campaign_id}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Error incrementing usage:', error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: 'No se pudo registrar el uso.' };
+  }
 }

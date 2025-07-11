@@ -172,3 +172,20 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
         throw new Error('Error al eliminar la campaña de la base de datos.');
     }
 }
+
+
+export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
+    const { data, error } = await supabase.rpc('increment_influencer_usage', { p_influencer_id: influencerId });
+
+    if (error) {
+        console.error('Error incrementing usage with RPC:', error);
+        throw new Error('No se pudo registrar el uso.');
+    }
+
+    // The RPC function returns the updated influencer record
+    if (!data || data.length === 0) {
+        throw new Error('No se pudo obtener el influencer actualizado después del incremento.');
+    }
+
+    return data[0] as Influencer;
+}

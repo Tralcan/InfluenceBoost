@@ -3,9 +3,10 @@ import type { InfluencerWithCampaign } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, User, Calendar, Tag, Percent, Link as LinkIcon } from 'lucide-react';
+import { ArrowRight, User, Calendar, Tag, Percent, Hash, Star } from 'lucide-react';
 import { SearchForm } from '@/components/dashboard/search-form';
 import Link from 'next/link';
+import { IncrementUsageButton } from '@/components/dashboard/increment-usage-button';
 
 interface SearchCodePageProps {
   searchParams: {
@@ -13,7 +14,7 @@ interface SearchCodePageProps {
   };
 }
 
-function ResultCard({ influencer }: { influencer: InfluencerWithCampaign }) {
+function ResultCard({ influencer, code }: { influencer: InfluencerWithCampaign, code: string }) {
   if (!influencer.campaigns) {
     return (
         <Card className="mt-6 animate-in fade-in-50">
@@ -43,24 +44,44 @@ function ResultCard({ influencer }: { influencer: InfluencerWithCampaign }) {
             <p className="text-sm text-muted-foreground">{influencer.email}</p>
           </div>
         </div>
-        <div className="border-t pt-4 space-y-2">
-            <h4 className='text-sm font-semibold'>Detalles de la Campaña</h4>
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <Tag className="h-4 w-4" />
-                <span>{influencer.campaigns.name}</span>
-            </div>
-             <div className="flex items-center gap-2 text-muted-foreground">
-                <Percent className="h-4 w-4" />
-                <span>{influencer.campaigns.discount}</span>
-            </div>
-             <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>Válido hasta: {new Date(influencer.campaigns.end_date).toLocaleDateString('es-ES')}</span>
+
+        <div className="border-t pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <h4 className='text-sm font-semibold mb-2'>Detalles de la Campaña</h4>
+                <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Tag className="h-4 w-4" />
+                        <span>{influencer.campaigns.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Percent className="h-4 w-4" />
+                        <span>{influencer.campaigns.discount}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        <span>Válido hasta: {new Date(influencer.campaigns.end_date).toLocaleDateString('es-ES')}</span>
+                    </div>
+                </div>
+             </div>
+             <div>
+                <h4 className='text-sm font-semibold mb-2'>Estadísticas del Influencer</h4>
+                 <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Hash className="h-4 w-4" />
+                        <span>{influencer.uses.toLocaleString('es-ES')} Usos</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Star className="h-4 w-4" />
+                        <span>{influencer.points.toLocaleString('es-ES')} Puntos</span>
+                    </div>
+                </div>
             </div>
         </div>
+
       </CardContent>
-      <CardFooter>
-        <Button asChild>
+      <CardFooter className="flex-wrap gap-2 justify-between">
+        <IncrementUsageButton influencerId={influencer.id} code={code} />
+        <Button asChild variant="outline">
             <Link href={`/dashboard/campaigns/${influencer.campaign_id}`}>
                 Ir a la Campaña <ArrowRight className="ml-2 h-4 w-4"/>
             </Link>
@@ -107,7 +128,7 @@ export default async function SearchCodePage({ searchParams }: SearchCodePagePro
       </Card>
       
       {code && (
-        influencer ? <ResultCard influencer={influencer} /> : <NoResult code={code} />
+        influencer ? <ResultCard influencer={influencer} code={code} /> : <NoResult code={code} />
       )}
     </div>
   );
