@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import { SidebarTrigger } from './ui/sidebar';
+import { Logo } from './logo';
+import Link from 'next/link';
 
 export function Header() {
 
@@ -23,6 +25,11 @@ export function Header() {
       
       <div className="flex items-center gap-4">
         <SidebarTrigger />
+        <div className="hidden md:block">
+            <Link href="/dashboard">
+                <Logo />
+            </Link>
+        </div>
       </div>
 
       <div className="relative ml-auto flex-1 md:grow-0">
