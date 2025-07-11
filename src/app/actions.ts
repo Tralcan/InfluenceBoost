@@ -1,8 +1,9 @@
+
 'use server';
 
 import { suggestDiscount, SuggestDiscountInput, SuggestDiscountOutput } from '@/ai/flows/discount-suggestion';
 import { generateCampaignImage } from '@/ai/flows/generate-campaign-image-flow';
-import { createCampaign, registerInfluencer, deleteCampaign, updateCampaign, incrementInfluencerCodeUsage } from '@/lib/supabase/queries';
+import { createCampaign, registerInfluencerForCampaign, deleteCampaign, updateCampaign, incrementInfluencerCodeUsage } from '@/lib/supabase/queries';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { Campaign } from '@/lib/types';
@@ -97,7 +98,6 @@ export async function updateCampaignAction(
   }
 }
 
-
 export async function registerInfluencerAction(
     campaignId: string,
     prevState: any,
@@ -118,7 +118,7 @@ export async function registerInfluencerAction(
     }
 
     try {
-        const newInfluencer = await registerInfluencer(campaignId, { 
+        const result = await registerInfluencerForCampaign(campaignId, { 
             name, 
             email, 
             instagram_handle: instagram,
@@ -127,7 +127,7 @@ export async function registerInfluencerAction(
             other_social_media: other
         });
         revalidatePath(`/dashboard/campaigns/${campaignId}`);
-        return { success: true, code: newInfluencer.generated_code, error: null };
+        return { success: true, code: result.generated_code, error: null };
     } catch (error) {
         console.error('Error registering influencer:', error);
         if (error instanceof Error) {
@@ -153,11 +153,11 @@ export async function deleteCampaignAction(
     }
 }
 
-export async function incrementUsageAction(influencerId: string, currentCode: string): Promise<{ success: true } | { success: false; error: string }> {
+export async function incrementUsageAction(participantId: string, influencerId: string, currentCode: string): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    const updatedInfluencer = await incrementInfluencerCodeUsage(influencerId);
+    const updatedParticipant = await incrementInfluencerCodeUsage(participantId, influencerId);
     revalidatePath(`/dashboard/search-code?code=${currentCode}`);
-    revalidatePath(`/dashboard/campaigns/${updatedInfluencer.campaign_id}`);
+    revalidatePath(`/dashboard/campaigns/${updatedParticipant.campaign_id}`);
     return { success: true };
   } catch (error) {
     console.error('Error en incrementUsageAction:', error);

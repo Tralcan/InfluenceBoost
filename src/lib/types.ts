@@ -4,7 +4,7 @@ export type Company = {
   email: string;
 };
 
-// This represents the structure in the 'influencers' table
+// Represents the core influencer profile
 export type Influencer = {
   id: string; // uuid, primary key
   name: string;
@@ -13,14 +13,11 @@ export type Influencer = {
   instagram_handle: string | null;
   x_handle: string | null;
   other_social_media: string | null;
-  campaign_id: string; // uuid, foreign key to campaigns
-  generated_code: string;
-  uses: number; // default 0
-  points: number; // default 0
+  points: number; // Cumulative points across all campaigns
   created_at: string;
 };
 
-// This represents the structure in the 'campaigns' table
+// Represents the structure in the 'campaigns' table
 export type Campaign = {
   id: string; // uuid, primary key
   company_id: string; // mock for now
@@ -34,13 +31,30 @@ export type Campaign = {
   created_at: string;
 };
 
-
-// This is a combined type for UI components that need campaign data with its influencers
-export type CampaignWithInfluencers = Campaign & {
-  influencers: Influencer[];
+// Represents the join table record, linking an influencer to a campaign
+export type CampaignInfluencer = {
+  id: string; // uuid, primary key
+  campaign_id: string; // FK to campaigns
+  influencer_id: string; // FK to influencers
+  generated_code: string;
+  uses: number;
+  created_at: string;
+  // We can join to get influencer details
+  influencers: Pick<Influencer, 'name' | 'email' | 'instagram_handle' | 'tiktok_handle' | 'x_handle' | 'other_social_media' | 'points'>;
 };
 
-// This is a combined type for the code search result
-export type InfluencerWithCampaign = Influencer & {
-  campaigns: Campaign | null;
+// For the main dashboard view: Campaign with its list of participants
+export type CampaignWithParticipants = Campaign & {
+  campaign_influencers: CampaignInfluencer[];
+};
+
+// For the code search result page
+export type CampaignParticipantInfo = {
+  id: string; // ID of the campaign_influencers record
+  campaign_id: string;
+  influencer_id: string;
+  generated_code: string;
+  uses: number;
+  campaigns: Campaign; // The campaign details
+  influencers: Influencer; // The influencer details
 };

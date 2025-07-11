@@ -1,15 +1,18 @@
+
 'use server';
 
-import { createClient } from '@supabase/supabase-js';
 import { supabase } from './client';
-import type { Campaign, CampaignWithInfluencers, Influencer, InfluencerWithCampaign } from '../types';
+import type { Campaign, CampaignParticipantInfo, CampaignWithParticipants, Influencer } from '../types';
 
-export async function getCampaigns(): Promise<CampaignWithInfluencers[]> {
+export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
   const { data: campaigns, error } = await supabase
     .from('campaigns')
     .select(`
       *,
-      influencers ( * )
+      campaign_influencers (
+        *,
+        influencers ( name, email, instagram_handle, tiktok_handle, x_handle, other_social_media, points )
+      )
     `)
     .order('created_at', { ascending: false });
 
@@ -17,52 +20,54 @@ export async function getCampaigns(): Promise<CampaignWithInfluencers[]> {
     console.error('Error fetching campaigns:', error);
     throw new Error('No se pudieron obtener las campañas.');
   }
-  return campaigns as CampaignWithInfluencers[];
+  return campaigns as CampaignWithParticipants[];
 }
 
-export async function getCampaignById(id: string): Promise<CampaignWithInfluencers | null> {
+export async function getCampaignById(id: string): Promise<CampaignWithParticipants | null> {
   const { data, error } = await supabase
     .from('campaigns')
     .select(`
       *,
-      influencers ( * )
+      campaign_influencers (
+        *,
+        influencers ( name, email, instagram_handle, tiktok_handle, x_handle, other_social_media, points )
+      )
     `)
     .eq('id', id)
     .single();
 
   if (error) {
     console.error('Error fetching campaign by ID:', error);
-    // Don't throw for a single not-found item, just return null
     if (error.code === 'PGRST116') { 
         return null;
     }
     throw new Error('No se pudo obtener la campaña.');
   }
 
-  return data as CampaignWithInfluencers;
+  return data as CampaignWithParticipants;
 }
 
-export async function getInfluencerByCode(code: string): Promise<InfluencerWithCampaign | null> {
+export async function getParticipantByCode(code: string): Promise<CampaignParticipantInfo | null> {
     const { data, error } = await supabase
-        .from('influencers')
+        .from('campaign_influencers')
         .select(`
             *,
-            campaigns ( * )
+            campaigns ( * ),
+            influencers ( * )
         `)
         .eq('generated_code', code.toUpperCase())
         .single();
 
     if (error) {
         if (error.code === 'PGRST116') {
-            return null; // Not found, which is a valid search result
+            return null; // Not found, valid search result
         }
-        console.error('Error fetching influencer by code:', error);
-        throw new Error('No se pudo buscar el código del influencer.');
+        console.error('Error fetching participant by code:', error);
+        throw new Error('No se pudo buscar el código.');
     }
     
-    return data as InfluencerWithCampaign;
+    return data as CampaignParticipantInfo;
 }
-
 
 export async function createCampaign(
   data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
@@ -114,55 +119,94 @@ export async function updateCampaign(
   return updatedCampaign;
 }
 
-export async function registerInfluencer(
+export async function registerInfluencerForCampaign(
     campaignId: string, 
     influencerData: { 
         name: string, 
         email: string, 
-        instagram_handle: string, 
-        tiktok_handle: string, 
-        x_handle: string,
-        other_social_media: string
+        instagram_handle: string | null, 
+        tiktok_handle: string | null, 
+        x_handle: string | null,
+        other_social_media: string | null
     }
-): Promise<Influencer> {
+): Promise<{ generated_code: string }> {
     const campaign = await getCampaignById(campaignId);
     if (!campaign) {
         throw new Error('Campaña no encontrada');
     }
 
-    const discountValue = campaign.discount.match(/\d+/)?.[0] || '10';
-    const generatedCode = `${influencerData.name.split(' ')[0].toUpperCase()}${discountValue}`;
-
-    const { data: newInfluencer, error } = await supabase
+    // 1. Find or create the influencer by email
+    let { data: influencer, error: findError } = await supabase
         .from('influencers')
-        .insert({
-            campaign_id: campaignId,
-            name: influencerData.name,
-            email: influencerData.email,
-            instagram_handle: influencerData.instagram_handle,
-            tiktok_handle: influencerData.tiktok_handle,
-            x_handle: influencerData.x_handle,
-            other_social_media: influencerData.other_social_media,
-            generated_code: generatedCode.toUpperCase(),
-        })
-        .select()
+        .select('*')
+        .eq('email', influencerData.email)
         .single();
-    
-    if (error) {
-        console.error('Error registering influencer:', error);
-        if (error.code === '23505') { // Unique constraint violation
-            throw new Error('Este email ya ha sido registrado para esta campaña.');
-        }
-        throw new Error('No se pudo registrar al influencer.');
+
+    if (findError && findError.code !== 'PGRST116') {
+        console.error('Error finding influencer:', findError);
+        throw new Error('Error al buscar al influencer.');
     }
 
-    return newInfluencer;
+    if (!influencer) {
+        const { data: newInfluencer, error: createError } = await supabase
+            .from('influencers')
+            .insert({
+                name: influencerData.name,
+                email: influencerData.email,
+                instagram_handle: influencerData.instagram_handle,
+                tiktok_handle: influencerData.tiktok_handle,
+                x_handle: influencerData.x_handle,
+                other_social_media: influencerData.other_social_media,
+            })
+            .select()
+            .single();
+
+        if (createError) {
+            console.error('Error creating influencer:', createError);
+            throw new Error('No se pudo crear el perfil del influencer.');
+        }
+        influencer = newInfluencer;
+    }
+
+    // 2. Check if the influencer is already in this campaign
+    const { data: existingParticipant, error: checkError } = await supabase
+        .from('campaign_influencers')
+        .select('id')
+        .eq('campaign_id', campaignId)
+        .eq('influencer_id', influencer.id)
+        .single();
+    
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw new Error('Error al verificar la participación.');
+    }
+
+    if (existingParticipant) {
+      throw new Error('Este influencer ya está registrado en esta campaña.');
+    }
+
+    // 3. Create the campaign participant record
+    const discountValue = campaign.discount.match(/\d+/)?.[0] || '10';
+    const generatedCode = `${influencer.name.split(' ')[0].toUpperCase()}${discountValue}`;
+
+    const { data: participant, error: participantError } = await supabase
+        .from('campaign_influencers')
+        .insert({
+            campaign_id: campaignId,
+            influencer_id: influencer.id,
+            generated_code: generatedCode.toUpperCase(),
+        })
+        .select('generated_code')
+        .single();
+    
+    if (participantError) {
+        console.error('Error registering influencer for campaign:', participantError);
+        throw new Error('No se pudo registrar al influencer en la campaña.');
+    }
+
+    return participant;
 }
 
-
 export async function deleteCampaign(campaignId: string): Promise<void> {
-    // Supabase is configured with cascading deletes, so deleting a campaign
-    // will also delete all associated influencers.
     const { error } = await supabase
         .from('campaigns')
         .delete()
@@ -174,35 +218,24 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
     }
 }
 
-export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-  // 1. Get current influencer data
-  const { data: currentInfluencer, error: fetchError } = await supabase
-    .from('influencers')
-    .select('uses, points')
-    .eq('id', influencerId)
-    .single();
+export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
+  // Use a transaction to ensure both updates succeed or fail together
+  const { data, error } = await supabase.rpc('increment_usage_and_points', {
+    p_participant_id: participantId,
+    p_influencer_id: influencerId,
+    p_points_to_add: 10
+  });
 
-  if (fetchError || !currentInfluencer) {
-    console.error('Error fetching influencer for increment:', fetchError);
-    throw new Error('No se pudo encontrar al influencer para actualizar.');
+  if (error) {
+    console.error('Error incrementing usage with RPC:', error);
+    throw new Error('No se pudo registrar el uso.');
   }
 
-  // 2. Calculate new values
-  const newUses = currentInfluencer.uses + 1;
-  const newPoints = currentInfluencer.points + 10; // 10 points per use
-
-  // 3. Update the influencer with new values
-  const { data: updatedInfluencer, error: updateError } = await supabase
-    .from('influencers')
-    .update({ uses: newUses, points: newPoints })
-    .eq('id', influencerId)
-    .select()
-    .single();
-
-  if (updateError) {
-    console.error('Error updating influencer usage:', updateError);
-    throw new Error('No se pudo registrar el uso en la base de datos.');
+  // The RPC returns the updated participant info, so we can just return it.
+  // We need to fetch the relations again to match the expected type.
+  const updatedParticipant = await getParticipantByCode(data.generated_code);
+  if (!updatedParticipant) {
+    throw new Error('No se pudo recargar la información del participante tras la actualización.')
   }
-
-  return updatedInfluencer;
+  return updatedParticipant;
 }

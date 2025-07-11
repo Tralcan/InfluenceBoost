@@ -7,18 +7,19 @@ import { incrementUsageAction } from '@/app/actions';
 import { Check, Loader2, PlusCircle } from 'lucide-react';
 
 interface IncrementUsageButtonProps {
+  participantId: string;
   influencerId: string;
   code: string;
 }
 
-export function IncrementUsageButton({ influencerId, code }: IncrementUsageButtonProps) {
+export function IncrementUsageButton({ participantId, influencerId, code }: IncrementUsageButtonProps) {
   const { toast } = useToast();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleClick = async () => {
     setIsPending(true);
-    const result = await incrementUsageAction(influencerId, code);
+    const result = await incrementUsageAction(participantId, influencerId, code);
     setIsPending(false);
 
     if (result.success) {

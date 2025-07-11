@@ -1,4 +1,4 @@
-import type { CampaignWithInfluencers } from '@/lib/types';
+import type { CampaignWithParticipants } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -25,7 +25,7 @@ function CampaignStatusBadge({ startDate, endDate }: { startDate: Date; endDate:
   return <Badge className="bg-green-500 hover:bg-green-600 text-white">Activa</Badge>;
 }
 
-export function CampaignCard({ campaign }: { campaign: CampaignWithInfluencers }) {
+export function CampaignCard({ campaign }: { campaign: CampaignWithParticipants }) {
   const startDate = parseISO(campaign.start_date);
   const endDate = parseISO(campaign.end_date);
   
@@ -46,7 +46,7 @@ export function CampaignCard({ campaign }: { campaign: CampaignWithInfluencers }
         <div className="flex gap-4 text-sm">
             <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary"/>
-                <span className="font-medium">{campaign.influencers.length} Influencers</span>
+                <span className="font-medium">{campaign.campaign_influencers.length} Participantes</span>
             </div>
             <div className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-primary"/>

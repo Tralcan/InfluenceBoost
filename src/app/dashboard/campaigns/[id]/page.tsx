@@ -61,7 +61,7 @@ export default async function CampaignDetailsPage({ params }: { params: { id: st
             </Card>
 
             <CampaignStats campaign={campaign} />
-            <InfluencersTable influencers={campaign.influencers} />
+            <InfluencersTable participants={campaign.campaign_influencers} />
         </div>
         <div className="lg:col-span-1">
             <QRCodeDisplay 

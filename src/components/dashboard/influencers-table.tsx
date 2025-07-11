@@ -1,5 +1,5 @@
 'use client'
-import type { Influencer } from '@/lib/types';
+import type { CampaignInfluencer } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
-import { Copy, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Copy, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -59,7 +59,7 @@ const SocialLink = ({ platform, handle }: { platform: 'Instagram' | 'TikTok' | '
 };
 
 
-export function InfluencersTable({ influencers }: { influencers: Influencer[] }) {
+export function InfluencersTable({ participants }: { participants: CampaignInfluencer[] }) {
   const { toast } = useToast();
 
   const copyToClipboard = (text: string) => {
@@ -70,7 +70,7 @@ export function InfluencersTable({ influencers }: { influencers: Influencer[] })
     })
   }
   
-  if (influencers.length === 0) {
+  if (participants.length === 0) {
     return (
         <Card>
             <CardHeader>
@@ -98,31 +98,31 @@ export function InfluencersTable({ influencers }: { influencers: Influencer[] })
               <TableHead>Redes Sociales</TableHead>
               <TableHead>Código Generado</TableHead>
               <TableHead className="text-right">Usos</TableHead>
-              <TableHead className="text-right">Puntos</TableHead>
+              <TableHead className="text-right">Puntos (Total)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {influencers.sort((a,b) => b.points - a.points).map((influencer) => (
-              <TableRow key={influencer.id}>
-                <TableCell className="font-medium">{influencer.name}</TableCell>
+            {participants.sort((a,b) => b.influencers.points - a.influencers.points).map((participant) => (
+              <TableRow key={participant.id}>
+                <TableCell className="font-medium">{participant.influencers.name}</TableCell>
                 <TableCell>
                     <div className="flex items-center gap-1">
-                        <SocialLink platform="Instagram" handle={influencer.instagram_handle} />
-                        <SocialLink platform="TikTok" handle={influencer.tiktok_handle} />
-                        <SocialLink platform="X" handle={influencer.x_handle} />
-                        <SocialLink platform="Other" handle={influencer.other_social_media} />
+                        <SocialLink platform="Instagram" handle={participant.influencers.instagram_handle} />
+                        <SocialLink platform="TikTok" handle={participant.influencers.tiktok_handle} />
+                        <SocialLink platform="X" handle={participant.influencers.x_handle} />
+                        <SocialLink platform="Other" handle={participant.influencers.other_social_media} />
                     </div>
                 </TableCell>
                 <TableCell>
                   <div className='flex items-center gap-2'>
-                    <Badge variant="outline">{influencer.generated_code}</Badge>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(influencer.generated_code)}>
+                    <Badge variant="outline">{participant.generated_code}</Badge>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(participant.generated_code)}>
                         <Copy className="h-3 w-3" />
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">{influencer.uses.toLocaleString('es-ES')}</TableCell>
-                <TableCell className="text-right">{influencer.points.toLocaleString('es-ES')}</TableCell>
+                <TableCell className="text-right">{participant.uses.toLocaleString('es-ES')}</TableCell>
+                <TableCell className="text-right">{participant.influencers.points.toLocaleString('es-ES')}</TableCell>
               </TableRow>
             ))}
           </TableBody>
