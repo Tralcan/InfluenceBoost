@@ -17,10 +17,11 @@ import React from 'react';
 import { Logo } from './logo';
 import Link from 'next/link';
 
-export function Header() {
+export function Header({ children }: { children?: React.ReactNode }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      {children}
       <div className="flex items-center gap-2">
         <Link href="/dashboard">
           <Logo />
