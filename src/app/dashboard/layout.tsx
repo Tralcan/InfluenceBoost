@@ -34,9 +34,8 @@ export default function DashboardLayout({
     <div className="flex min-h-screen w-full bg-muted/40">
       <Sheet>
         <div className="flex flex-col flex-1">
-          <Header>
-            <div className="flex items-center gap-4">
-               <SheetTrigger asChild>
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+             <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="shrink-0">
                   <PanelLeft />
                   <span className="sr-only">Toggle Sidebar</span>
@@ -45,15 +44,14 @@ export default function DashboardLayout({
               <Link href="/dashboard">
                 <Logo />
               </Link>
-            </div>
-          </Header>
+          </header>
           <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             {children}
           </main>
         </div>
         <SheetContent
           side="left"
-          className="w-[280px] bg-sidebar p-0 text-sidebar-foreground"
+          className="w-[240px] bg-sidebar p-0 text-sidebar-foreground"
         >
           <SheetHeader>
             <SheetTitle className="sr-only">Menu</SheetTitle>
