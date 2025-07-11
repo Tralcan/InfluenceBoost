@@ -176,22 +176,22 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 
 
 export async function incrementInfluencerCodeUsage(influencerId: string): Promise<Influencer> {
-    // The RPC function expects a parameter named 'influencer_id'.
-    // We pass it in an object. The key must match the parameter name in the SQL function.
-    const { data, error } = await supabase.rpc('increment_influencer_usage', {
-      influencer_id: influencerId
-    });
+  const { data, error } = await supabase.rpc('increment_influencer_usage', {
+    p_influencer_id: influencerId,
+  });
 
-    if (error) {
-        console.error('Error incrementing usage with RPC:', error);
-        throw new Error('No se pudo registrar el uso.');
-    }
+  if (error) {
+    console.error('Error incrementing usage with RPC:', error);
+    throw new Error('No se pudo registrar el uso.');
+  }
 
-    // The RPC function returns the updated influencer record
-    if (!data) {
-        throw new Error('No se pudo obtener el influencer actualizado después del incremento.');
-    }
+  // The RPC function returns the updated influencer record
+  if (!data) {
+    throw new Error(
+      'No se pudo obtener el influencer actualizado después del incremento.'
+    );
+  }
 
-    // The RPC function call now returns a single object, not an array.
-    return data as Influencer;
+  // The RPC function call now returns a single object, not an array.
+  return data as Influencer;
 }
