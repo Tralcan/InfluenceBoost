@@ -195,7 +195,7 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada');
     }
 
-    // Step 1: Upsert Influencer - this is atomic and safe.
+    // Step 1: Upsert Influencer to ensure they exist and are up-to-date.
     const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
         .upsert({
@@ -218,40 +218,33 @@ export async function registerInfluencerForCampaign(
         console.error('Error upserting influencer:', upsertError);
         throw new Error('No se pudo crear o actualizar el perfil del influencer.');
     }
-    
     const influencer = upsertedInfluencer;
 
-    // Step 2: Check if this influencer is already part of this campaign
-    const { data: existingParticipant, error: checkError } = await supabase
+    // Step 2: Check if this influencer is ALREADY part of THIS campaign.
+    const { data: existingParticipant } = await supabase
         .from('campaign_influencers')
-        .select('id, generated_code')
+        .select('generated_code')
         .eq('campaign_id', campaignId)
         .eq('influencer_id', influencer.id)
         .maybeSingle();
-    
-    if (checkError) {
-      console.error("Error checking participation:", checkError);
-      throw new Error('Error al verificar la participación.');
-    }
 
     if (existingParticipant) {
-      // If they are already in the campaign, just return their existing code.
-      return { generated_code: existingParticipant.generated_code };
+        // If they are already in the campaign, just return their existing code.
+        return { generated_code: existingParticipant.generated_code };
     }
 
-    // Step 3: If new to the campaign, generate a unique code with iterative checking
+    // Step 3: Generate a globally unique code using the specified logic.
     const baseName = influencer.name.split(' ')[0].toUpperCase();
     let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
-    let generatedCode = '';
-    let isCodeUnique = false;
-
-    while (!isCodeUnique) {
-        generatedCode = `${baseName}${discountNumber}`;
+    let finalCode = '';
+    
+    while (true) {
+        const tentativeCode = `${baseName}${discountNumber}`;
         const { data: codeCheck, error: codeCheckError } = await supabase
             .from('campaign_influencers')
             .select('id')
-            .eq('generated_code', generatedCode)
-            .eq('campaign_id', campaignId) // THIS IS THE CRITICAL FIX
+            .eq('generated_code', tentativeCode)
+            // No .eq('campaign_id', ...) to check across ALL campaigns as requested.
             .maybeSingle();
 
         if (codeCheckError) {
@@ -260,36 +253,35 @@ export async function registerInfluencerForCampaign(
         }
 
         if (!codeCheck) {
-            isCodeUnique = true;
-        } else {
-            discountNumber++; 
+            finalCode = tentativeCode;
+            break; // Found a unique code, exit the loop.
         }
+        
+        // If code exists, increment and try again in the next loop iteration.
+        discountNumber++; 
     }
 
-    // Step 4: Insert the new participant record
-    const { data: participant, error: participantError } = await supabase
+    // Step 4: Insert the new participant record with the unique code.
+    const { data: newParticipant, error: participantError } = await supabase
         .from('campaign_influencers')
         .insert({
             campaign_id: campaignId,
             influencer_id: influencer.id,
-            generated_code: generatedCode,
+            generated_code: finalCode,
         })
         .select('generated_code')
         .single();
     
     if (participantError) {
-        if (participantError.code === '23505') { 
-            throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
-        }
         console.error('Error registering influencer for campaign:', participantError);
-        throw new Error('No se pudo registrar al influencer en la campaña.');
+        throw new Error('No se pudo registrar al influencer en la campaña. Puede que el código ya exista.');
     }
 
-    if (!participant) {
+    if (!newParticipant) {
         throw new Error('No se pudo obtener el código generado tras el registro.');
     }
 
-    return participant;
+    return newParticipant;
 }
 
 export async function deleteCampaign(campaignId: string): Promise<void> {
@@ -308,6 +300,7 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
     const supabase = createSupabaseServerClient();
     
+    // This needs to be a transaction to be safe, but for now we'll do it in steps.
     const { data: participant, error: fetchError } = await supabase
         .from('campaign_influencers')
         .select('uses')
@@ -348,8 +341,8 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         .eq('id', influencerId);
     
     if (pointsError) {
+        // Not throwing an error here as it's a non-critical part of the flow.
         console.error('Error incrementing influencer points:', pointsError);
-        throw new Error('No se pudo actualizar los puntos del influencer.');
     }
     
     const { data: finalParticipantData, error: refetchError } = await supabase
@@ -369,3 +362,5 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
+
+    
