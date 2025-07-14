@@ -246,7 +246,6 @@ export async function registerInfluencerForCampaign(
             .from('campaign_influencers')
             .select('id')
             .eq('generated_code', tentativeCode)
-            // CRITICAL FIX: Check only within the current campaign
             .eq('campaign_id', campaignId) 
             .maybeSingle();
 
