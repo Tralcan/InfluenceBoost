@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { registerInfluencerAction, findInfluencerByPhoneAction } from '@/app/actions';
+import { registerInfluencerAction } from '@/app/actions';
 import { Loader2 } from 'lucide-react';
 import type { Campaign } from '@/lib/types';
 import Image from 'next/image';
@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { findInfluencerByPhoneAction } from '@/app/actions';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -73,10 +74,13 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
 
 
   useEffect(() => {
+    console.log('[SIGNUP FORM] useEffect triggered. State:', state);
     if (state.success && state.code) {
+      console.log(`[SIGNUP FORM] Success! Code: ${state.code}. Redirecting...`);
       router.push(`/campaign/${campaign.id}/success?code=${state.code}`);
     }
     if (state.error) {
+      console.error(`[SIGNUP FORM] Error from action: ${state.error}`);
       toast({
         variant: 'destructive',
         title: 'Error en el Registro',

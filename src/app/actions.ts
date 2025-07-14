@@ -107,6 +107,8 @@ export async function registerInfluencerAction(
     prevState: any,
     formData: FormData
 ): Promise<{ success: boolean; code: string | null; error: string | null; }> {
+    console.log(`[ACTION] registerInfluencerAction triggered for campaign ${campaignId}`);
+    
     const influencerId = formData.get('influencer_id') as string | null;
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
@@ -127,6 +129,7 @@ export async function registerInfluencerAction(
     }
 
     try {
+        console.log('[ACTION] Calling registerInfluencerForCampaign...');
         const result = await registerInfluencerForCampaign(campaignId, {
             id: influencerId, 
             name, 
@@ -138,15 +141,24 @@ export async function registerInfluencerAction(
             other_social_media: other
         });
         
+        console.log('[ACTION] registerInfluencerForCampaign returned:', result);
+        
         revalidatePath(`/campaign/${campaignId}`);
-        return { success: true, code: result.generated_code, error: null };
+
+        const successState = { success: true, code: result.generated_code, error: null };
+        console.log('[ACTION] Returning success state:', successState);
+        return successState;
 
     } catch (error) {
-        console.error('Error registering influencer:', error);
+        console.error('[ACTION] Error in registerInfluencerAction:', error);
         if (error instanceof Error) {
-            return { success: false, error: error.message, code: null };
+            const errorState = { success: false, error: error.message, code: null };
+            console.log('[ACTION] Returning error state:', errorState);
+            return errorState;
         }
-        return { success: false, error: 'No se pudo registrar.', code: null };
+        const unknownErrorState = { success: false, error: 'No se pudo registrar.', code: null };
+        console.log('[ACTION] Returning unknown error state:', unknownErrorState);
+        return unknownErrorState;
     }
 }
 

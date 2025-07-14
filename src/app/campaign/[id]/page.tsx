@@ -22,6 +22,8 @@ export default async function InfluencerCampaignPage({ params }: { params: { id:
   // A campaign is full if the current number of influencers is already greater than or equal to the maximum.
   const isCampaignFull = maxInfluencers > 0 && currentInfluencers >= maxInfluencers;
 
+  console.log(`[CAMPAIGN PAGE] ID: ${params.id}, Current: ${currentInfluencers}, Max: ${maxInfluencers}, Is Full: ${isCampaignFull}, Is Over: ${isCampaignOver}`);
+
 
   const renderContent = () => {
     if (isCampaignOver) {
