@@ -1,12 +1,55 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+// A function that returns a mock Supabase client when credentials are not available.
+const createMockSupabaseClient = () => {
+  const handler = {
+    get(target: any, prop: any) {
+      if (prop === 'from') {
+        return () => {
+          const chainable = {
+            select: () => chainable,
+            insert: () => chainable,
+            update: () => chainable,
+            delete: () => chainable,
+            eq: () => chainable,
+            order: () => chainable,
+            single: () => chainable,
+            then: (resolve: (value: { data: any, error: null }) => void) => {
+               if (prop === 'select') {
+                return Promise.resolve(resolve({ data: [], error: null }));
+              }
+              return Promise.resolve(resolve({ data: null, error: null }));
+            },
+          };
+          return chainable;
+        };
+      }
+      if (prop === 'auth') {
+        return {
+          getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        };
+      }
+      return () => {};
+    },
+  };
+  return new Proxy({}, handler);
+};
+
 export function createSupabaseServerClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("Supabase credentials not found. Using mock client for server-side operations.");
+    return createMockSupabaseClient();
+  }
+
   const cookieStore = cookies()
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         get(name: string) {
