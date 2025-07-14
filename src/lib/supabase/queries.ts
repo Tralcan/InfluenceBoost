@@ -22,6 +22,7 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
       start_date,
       end_date,
       discount,
+      image_url,
       campaign_influencers ( id )
     `)
     .eq('user_id', user.id)
@@ -31,7 +32,7 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
     console.error('Error fetching campaigns:', error);
     throw new Error('No se pudieron obtener las campañas.');
   }
-
+  
   if (!campaigns) {
     return [];
   }
@@ -190,7 +191,7 @@ export async function registerInfluencerForCampaign(
     // Step 1: Upsert Influencer (Create or Update)
     if (influencerData.id) {
         // If an ID is provided, it means we found an existing user. Update them.
-        const { data: updatedInfluencer, error: updateError } = await supabase
+        const { error: updateError } = await supabase
             .from('influencers')
             .update({
                 name: influencerData.name,
@@ -202,14 +203,25 @@ export async function registerInfluencerForCampaign(
                 other_social_media: influencerData.other_social_media,
             })
             .eq('id', influencerData.id)
-            .select()
-            .single();
         
         if (updateError) {
             console.error('Error updating influencer:', updateError);
             throw new Error('Error al actualizar los datos del influencer.');
         }
-        influencer = updatedInfluencer;
+
+        // Now, refetch the updated influencer data separately.
+        const { data: refetchedInfluencer, error: refetchError } = await supabase
+            .from('influencers')
+            .select('*')
+            .eq('id', influencerData.id)
+            .single();
+
+        if (refetchError || !refetchedInfluencer) {
+            console.error('Error refetching influencer after update:', refetchError);
+            throw new Error('No se pudo recuperar la información del influencer después de la actualización.');
+        }
+        
+        influencer = refetchedInfluencer;
 
     } else {
         // No ID, so this is a new influencer. Create them.
@@ -244,7 +256,7 @@ export async function registerInfluencerForCampaign(
     // Step 2: Check if already registered for this specific campaign
     const { data: existingParticipant, error: checkError } = await supabase
         .from('campaign_influencers')
-        .select('id')
+        .select('id, generated_code')
         .eq('campaign_id', campaignId)
         .eq('influencer_id', influencer.id)
         .maybeSingle();
@@ -255,7 +267,9 @@ export async function registerInfluencerForCampaign(
     }
 
     if (existingParticipant) {
-      throw new Error('Este influencer ya está registrado en esta campaña.');
+      // The influencer is already registered, so we can just return their existing code.
+      // This makes the process idempotent and user-friendly.
+      return { generated_code: existingParticipant.generated_code };
     }
 
     // Step 3: Register influencer for the campaign
