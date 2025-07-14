@@ -37,7 +37,7 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
     return [];
   }
 
-  return campaigns as CampaignWithParticipants[];
+  return campaigns as unknown as CampaignWithParticipants[];
 }
 
 export async function getCampaignById(id: string): Promise<CampaignWithParticipants | null> {
@@ -190,7 +190,6 @@ export async function registerInfluencerForCampaign(
     
     // Step 1: Upsert Influencer (Create or Update)
     if (influencerData.id) {
-        // If an ID is provided, it means we found an existing user. Update them.
         const { error: updateError } = await supabase
             .from('influencers')
             .update({
@@ -209,7 +208,6 @@ export async function registerInfluencerForCampaign(
             throw new Error('Error al actualizar los datos del influencer.');
         }
 
-        // Now, refetch the updated influencer data separately.
         const { data: refetchedInfluencer, error: refetchError } = await supabase
             .from('influencers')
             .select('*')
@@ -224,7 +222,6 @@ export async function registerInfluencerForCampaign(
         influencer = refetchedInfluencer;
 
     } else {
-        // No ID, so this is a new influencer. Create them.
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -240,7 +237,7 @@ export async function registerInfluencerForCampaign(
             .single();
 
         if (createError) {
-             if (createError.code === '23505') { // Unique constraint violation for phone_number
+             if (createError.code === '23505') { 
                 throw new Error('Este número de teléfono ya está registrado.');
             }
             console.error('Error creating influencer:', createError);
@@ -249,11 +246,10 @@ export async function registerInfluencerForCampaign(
         influencer = newInfluencer;
     }
     
-    if (!influencer) {
-        throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
+    if (!influencer || !influencer.phone_number) {
+        throw new Error("No se pudo obtener la información del influencer o falta el número de teléfono.");
     }
 
-    // Step 2: Check if already registered for this specific campaign
     const { data: existingParticipant, error: checkError } = await supabase
         .from('campaign_influencers')
         .select('id, generated_code')
@@ -267,14 +263,13 @@ export async function registerInfluencerForCampaign(
     }
 
     if (existingParticipant) {
-      // The influencer is already registered, so we can just return their existing code.
-      // This makes the process idempotent and user-friendly.
       return { generated_code: existingParticipant.generated_code };
     }
 
-    // Step 3: Register influencer for the campaign
-    const discountValue = campaign.discount.match(/\d+/)?.[0] || '10';
-    const generatedCode = `${influencer.name.split(' ')[0].toUpperCase()}${discountValue}`;
+    const cleanPhoneNumber = influencer.phone_number.replace(/\D/g, '');
+    const phoneSuffix = cleanPhoneNumber.slice(-4);
+    const firstName = influencer.name.split(' ')[0].toUpperCase();
+    const generatedCode = `${firstName}${phoneSuffix}`;
 
     const { data: participant, error: participantError } = await supabase
         .from('campaign_influencers')
@@ -287,6 +282,9 @@ export async function registerInfluencerForCampaign(
         .single();
     
     if (participantError) {
+        if (participantError.code === '23505') {
+            throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
+        }
         console.error('Error registering influencer for campaign:', participantError);
         throw new Error('No se pudo registrar al influencer en la campaña.');
     }
