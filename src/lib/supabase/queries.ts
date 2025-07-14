@@ -190,6 +190,7 @@ export async function registerInfluencerForCampaign(
     
     // Step 1: Upsert Influencer (Create or Update)
     if (influencerData.id) {
+        // This is an existing influencer, so update their info.
         const { error: updateError } = await supabase
             .from('influencers')
             .update({
@@ -208,6 +209,7 @@ export async function registerInfluencerForCampaign(
             throw new Error('Error al actualizar los datos del influencer.');
         }
 
+        // Refetch the updated influencer data to ensure we have the latest info.
         const { data: refetchedInfluencer, error: refetchError } = await supabase
             .from('influencers')
             .select('*')
@@ -222,6 +224,7 @@ export async function registerInfluencerForCampaign(
         influencer = refetchedInfluencer;
 
     } else {
+        // This is a new influencer, create them.
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -250,6 +253,7 @@ export async function registerInfluencerForCampaign(
         throw new Error("No se pudo obtener la información del influencer o falta el número de teléfono.");
     }
 
+    // Step 2: Check if this influencer is already part of this campaign
     const { data: existingParticipant, error: checkError } = await supabase
         .from('campaign_influencers')
         .select('id, generated_code')
@@ -262,27 +266,35 @@ export async function registerInfluencerForCampaign(
       throw new Error('Error al verificar la participación.');
     }
 
+    // If they are already in the campaign, just return their existing code.
     if (existingParticipant) {
       return { generated_code: existingParticipant.generated_code };
     }
 
-    const cleanPhoneNumber = influencer.phone_number.replace(/\D/g, '');
-    const phoneSuffix = cleanPhoneNumber.slice(-4);
+    // Step 3: Generate the unique code based on the new logic
     const firstName = influencer.name.split(' ')[0].toUpperCase();
-    const generatedCode = `${firstName}${phoneSuffix}`;
+    const campaignIdLastDigit = campaignId.slice(-1);
+    const discountNumber = campaign.discount.match(/\d+/)?.[0] || '0';
+    const cleanPhoneNumber = influencer.phone_number.replace(/\D/g, '');
+    const phoneLastDigit = cleanPhoneNumber.slice(-1);
+    
+    const generatedCode = `${firstName}${campaignIdLastDigit}${discountNumber}${phoneLastDigit}`.toUpperCase();
 
+
+    // Step 4: Insert the new participant record
     const { data: participant, error: participantError } = await supabase
         .from('campaign_influencers')
         .insert({
             campaign_id: campaignId,
             influencer_id: influencer.id,
-            generated_code: generatedCode.toUpperCase(),
+            generated_code: generatedCode,
         })
         .select('generated_code')
         .single();
     
     if (participantError) {
         if (participantError.code === '23505') {
+            // This case is now much less likely, but good to handle.
             throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
         }
         console.error('Error registering influencer for campaign:', participantError);
