@@ -196,12 +196,11 @@ export async function registerInfluencerForCampaign(
     }
 
     // Step 1: Use Supabase upsert to create or update the influencer atomically.
-    // This avoids race conditions and complex "find-then-act" logic.
-    // We tell Supabase to check for conflicts on the 'phone_number' column.
+    // This is the safest way to handle this, as it's a single, atomic operation.
     const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
         .upsert({
-            id: influencerData.id, // Pass ID if available, for explicit updates
+            id: influencerData.id, // Pass ID for explicit updates if it exists
             name: influencerData.name,
             email: influencerData.email,
             phone_number: influencerData.phone_number,
@@ -210,7 +209,7 @@ export async function registerInfluencerForCampaign(
             x_handle: influencerData.x_handle,
             other_social_media: influencerData.other_social_media,
         }, {
-            onConflict: 'phone_number',
+            onConflict: 'phone_number', // This requires a UNIQUE constraint on phone_number
             ignoreDuplicates: false,
         })
         .select()
@@ -370,3 +369,6 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
+
+
+    
