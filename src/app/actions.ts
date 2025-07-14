@@ -37,7 +37,11 @@ export async function createCampaignAction(
     if (!finalImageUrl) {
       console.log("DEBUG: No se proporcionó URL de imagen. Activando la generación de imágenes de IA para la campaña:", data.name);
       try {
-        const imageResult = await generateCampaignImage({ name: data.name, description: data.description });
+        const imageResult = await generateCampaignImage({ 
+            name: data.name, 
+            description: data.description,
+            discount: data.discount 
+        });
         
         if (imageResult && imageResult.imageUrl) {
             console.log("DEBUG: Imagen de IA generada con éxito.");

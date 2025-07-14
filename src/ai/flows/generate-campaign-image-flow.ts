@@ -14,6 +14,7 @@ import { z } from 'genkit';
 const GenerateCampaignImageInputSchema = z.object({
   name: z.string().describe('The name of the marketing campaign.'),
   description: z.string().describe('A detailed description of the marketing campaign.'),
+  discount: z.string().describe('The discount details of the campaign (e.g., "25% OFF", "BOGO").'),
 });
 export type GenerateCampaignImageInput = z.infer<typeof GenerateCampaignImageInputSchema>;
 
@@ -33,16 +34,23 @@ const generateCampaignImageFlow = ai.defineFlow(
     inputSchema: GenerateCampaignImageInputSchema,
     outputSchema: GenerateCampaignImageOutputSchema,
   },
-  async ({ name, description }) => {
+  async ({ name, description, discount }) => {
     console.log("DEBUG: Dentro de generateCampaignImageFlow. Llamando a la API de generación de IA.");
     const { media } = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: `Generate a visually appealing and professional marketing banner image for a campaign. The image should be abstract or conceptual, suitable for a social media banner (16:9 aspect ratio).
+      prompt: `Generate a visually appealing and professional marketing banner image for a campaign. The image should be abstract or conceptual, suitable for a social media banner (16:9 aspect ratio), and evoke the feeling of the campaign.
 
-      Do not include any text in the image. The image should be modern and vibrant.
+      Do not include any text in the image. The image should be modern, vibrant, and professional.
 
-      Campaign Name: ${name}
-      Campaign Description: ${description}`,
+      **Campaign Details for Inspiration:**
+      - **Campaign Name:** ${name}
+      - **Campaign Description:** ${description}
+      - **The Offer:** ${discount}
+
+      **Instructions:**
+      - Create a high-quality, conceptual image that represents the themes from the details above.
+      - For example, if the campaign is about a summer sale, the image could feature abstract sunny and warm elements. If it's about a tech product, use sleek, modern, abstract shapes.
+      - **Strictly no text, letters, or numbers in the generated image.**`,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },
