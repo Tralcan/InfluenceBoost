@@ -143,7 +143,8 @@ export async function registerInfluencerAction(
         
         console.log('[ACTION] registerInfluencerForCampaign returned:', result);
         
-        revalidatePath(`/campaign/${campaignId}`);
+        // DO NOT REVALIDATE HERE. This causes the page to reload before client-side redirect.
+        // revalidatePath(`/campaign/${campaignId}`);
 
         const successState = { success: true, code: result.generated_code, error: null };
         console.log('[ACTION] Returning success state:', successState);
