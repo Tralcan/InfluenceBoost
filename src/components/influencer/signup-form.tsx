@@ -92,7 +92,7 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
   const isDataUrl = campaign.image_url?.startsWith('data:image');
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
+    <Card className="w-full max-w-lg mx-auto mt-16">
       <CardHeader className="text-center space-y-4">
         {campaign.image_url && (
             <div className="aspect-video overflow-hidden rounded-lg border">
