@@ -195,12 +195,11 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada');
     }
 
-    // Step 1: Use Supabase upsert to create or update the influencer atomically.
-    // This is the safest way to handle this, as it's a single, atomic operation.
+    // Step 1: Upsert Influencer - this is atomic and safe.
     const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
         .upsert({
-            id: influencerData.id, // Pass ID for explicit updates if it exists
+            id: influencerData.id,
             name: influencerData.name,
             email: influencerData.email,
             phone_number: influencerData.phone_number,
@@ -209,19 +208,15 @@ export async function registerInfluencerForCampaign(
             x_handle: influencerData.x_handle,
             other_social_media: influencerData.other_social_media,
         }, {
-            onConflict: 'phone_number', // This requires a UNIQUE constraint on phone_number
+            onConflict: 'phone_number',
             ignoreDuplicates: false,
         })
         .select()
         .single();
     
-    if (upsertError) {
+    if (upsertError || !upsertedInfluencer) {
         console.error('Error upserting influencer:', upsertError);
         throw new Error('No se pudo crear o actualizar el perfil del influencer.');
-    }
-
-    if (!upsertedInfluencer) {
-        throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
     }
     
     const influencer = upsertedInfluencer;
@@ -240,10 +235,11 @@ export async function registerInfluencerForCampaign(
     }
 
     if (existingParticipant) {
+      // If they are already in the campaign, just return their existing code.
       return { generated_code: existingParticipant.generated_code };
     }
 
-    // Step 3: Generate a unique code with iterative checking
+    // Step 3: If new to the campaign, generate a unique code with iterative checking
     const baseName = influencer.name.split(' ')[0].toUpperCase();
     let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
     let generatedCode = '';
@@ -282,11 +278,15 @@ export async function registerInfluencerForCampaign(
         .single();
     
     if (participantError) {
-        if (participantError.code === '23505') { // This could be a race condition, although unlikely now
+        if (participantError.code === '23505') { 
             throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
         }
         console.error('Error registering influencer for campaign:', participantError);
         throw new Error('No se pudo registrar al influencer en la campaña.');
+    }
+
+    if (!participant) {
+        throw new Error('No se pudo obtener el código generado tras el registro.');
     }
 
     return participant;
@@ -370,5 +370,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
     return finalParticipantData as CampaignParticipantInfo;
 }
 
+
+    
 
     
