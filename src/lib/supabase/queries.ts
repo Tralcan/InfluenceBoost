@@ -251,7 +251,7 @@ export async function registerInfluencerForCampaign(
             .from('campaign_influencers')
             .select('id')
             .eq('generated_code', generatedCode)
-            .eq('campaign_id', campaignId)
+            .eq('campaign_id', campaignId) // THIS IS THE CRITICAL FIX
             .maybeSingle();
 
         if (codeCheckError) {
@@ -369,8 +369,3 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
-
-
-    
-
-    
