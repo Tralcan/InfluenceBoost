@@ -1,16 +1,30 @@
 
 'use server';
 
-import { supabase } from './client';
+import { createSupabaseServerClient } from './server';
 import type { Campaign, CampaignInfluencer, CampaignParticipantInfo, CampaignWithParticipants, Influencer } from '../types';
 
 export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.log("No user session found, returning empty campaigns array.");
+    return [];
+  }
+  
   const { data: campaigns, error } = await supabase
     .from('campaigns')
     .select(`
-      *,
+      id,
+      name,
+      description,
+      start_date,
+      end_date,
+      discount,
       campaign_influencers ( id )
     `)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -26,6 +40,7 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
 }
 
 export async function getCampaignById(id: string): Promise<CampaignWithParticipants | null> {
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('campaigns')
     .select(`
@@ -46,10 +61,17 @@ export async function getCampaignById(id: string): Promise<CampaignWithParticipa
     throw new Error('No se pudo obtener la campaña.');
   }
 
+  // RLS ensures we can only fetch campaigns owned by the user, but we can double check.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (data && user && data.user_id !== user.id) {
+    return null;
+  }
+
   return data as CampaignWithParticipants;
 }
 
 export async function getParticipantByCode(code: string): Promise<CampaignParticipantInfo | null> {
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
         .from('campaign_influencers')
         .select(`
@@ -72,6 +94,7 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
 }
 
 export async function getInfluencerByPhone(phone: string): Promise<Influencer | null> {
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
         .from('influencers')
         .select('*')
@@ -87,11 +110,18 @@ export async function getInfluencerByPhone(phone: string): Promise<Influencer | 
 }
 
 export async function createCampaign(
-  data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
+  data: Omit<Campaign, 'id' | 'created_at' | 'user_id'>
 ): Promise<Campaign> {
+   const supabase = createSupabaseServerClient();
+   const { data: { user } } = await supabase.auth.getUser();
+
+   if (!user) {
+     throw new Error("Authentication required to create a campaign.");
+   }
+
    const campaignData = {
     ...data,
-    company_id: '1', // Mocked user company
+    user_id: user.id,
   };
 
   const { data: newCampaign, error } = await supabase
@@ -110,8 +140,10 @@ export async function createCampaign(
 
 export async function updateCampaign(
   id: string,
-  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id'>>
+  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'user_id'>>
 ): Promise<Campaign> {
+  const supabase = createSupabaseServerClient();
+  // RLS handles security, so we just update.
   const { error: updateError } = await supabase
     .from('campaigns')
     .update(data)
@@ -149,6 +181,7 @@ export async function registerInfluencerForCampaign(
         other_social_media: string | null
     }
 ): Promise<{ generated_code: string }> {
+    const supabase = createSupabaseServerClient();
     const campaign = await getCampaignById(campaignId);
     if (!campaign) {
         throw new Error('Campaña no encontrada');
@@ -242,6 +275,8 @@ export async function registerInfluencerForCampaign(
 }
 
 export async function deleteCampaign(campaignId: string): Promise<void> {
+    const supabase = createSupabaseServerClient();
+    // RLS ensures only the owner can delete.
     const { error } = await supabase
         .from('campaigns')
         .delete()
@@ -254,6 +289,9 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
+    const supabase = createSupabaseServerClient();
+    
+    // Fetch current uses for the participant
     const { data: participant, error: fetchError } = await supabase
         .from('campaign_influencers')
         .select('uses')
@@ -265,6 +303,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo encontrar al participante para incrementar el uso.');
     }
 
+    // Increment participant's uses
     const { error: incrementError } = await supabase
         .from('campaign_influencers')
         .update({ uses: participant.uses + 1 })
@@ -275,6 +314,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo actualizar el contador de usos del participante.');
     }
     
+    // Fetch current points for the influencer
     const { data: influencer, error: fetchInfluencerError } = await supabase
         .from('influencers')
         .select('points')
@@ -286,9 +326,10 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo encontrar al influencer para actualizar los puntos.');
     }
 
+    // Increment influencer's points (e.g., 10 points per use)
     const { error: pointsError } = await supabase
         .from('influencers')
-        .update({ points: influencer.points + 10 }) // 1 use = 10 points
+        .update({ points: influencer.points + 10 })
         .eq('id', influencerId);
     
     if (pointsError) {
@@ -296,6 +337,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo actualizar los puntos del influencer.');
     }
     
+    // Refetch the updated participant with all details
     const { data: updatedParticipant, error: refetchError } = await supabase
         .from('campaign_influencers')
         .select(`

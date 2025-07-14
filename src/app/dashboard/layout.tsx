@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -26,6 +27,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
+import { supabase } from '@/lib/supabase/client';
+import { AuthButton } from '@/components/auth-button';
 
 export default function DashboardLayout({
   children,
@@ -33,6 +36,25 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleLinkClick = () => {
     setIsSidebarOpen(false);
@@ -52,6 +74,9 @@ export default function DashboardLayout({
               <Link href="/dashboard">
                 <Logo />
               </Link>
+              <div className="ml-auto">
+                <AuthButton user={user} />
+              </div>
           </header>
           <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             {children}

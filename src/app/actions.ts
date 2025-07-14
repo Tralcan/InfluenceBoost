@@ -24,7 +24,7 @@ export async function suggestDiscountAction(
 }
 
 export async function createCampaignAction(
-  data: Omit<Campaign, 'id' | 'created_at' | 'company_id'>
+  data: Omit<Campaign, 'id' | 'created_at' | 'user_id'>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   console.log('DEBUG: Iniciando createCampaignAction con datos:', {
     ...data,
@@ -77,7 +77,7 @@ export async function createCampaignAction(
 
 export async function updateCampaignAction(
   campaignId: string,
-  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'company_id'>>
+  data: Partial<Omit<Campaign, 'id' | 'created_at' | 'user_id'>>
 ): Promise<{ success: true; data: Campaign } | { success: false; error: string }> {
   try {
     const campaignData = {

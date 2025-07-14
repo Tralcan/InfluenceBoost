@@ -21,7 +21,7 @@ export type Influencer = {
 // Represents the structure in the 'campaigns' table
 export type Campaign = {
   id: string; // uuid, primary key
-  company_id: string; // mock for now
+  user_id: string; // FK to auth.users
   name: string;
   description: string;
   start_date: string; // ISO 8601 string

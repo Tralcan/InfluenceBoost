@@ -14,10 +14,7 @@ export default function Home() {
           </Link>
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-2">
-              <Button asChild variant="ghost">
-                <Link href="/dashboard">Iniciar Sesión</Link>
-              </Button>
-              <Button asChild>
+              <Button asChild variant="default">
                 <Link href="/dashboard">Empezar <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </nav>
