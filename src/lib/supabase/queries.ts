@@ -78,13 +78,10 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        console.log('DEBUG: No hay usuario autenticado, no se puede buscar el código.');
         return null;
     }
 
     const searchCode = code.toUpperCase();
-    
-    console.log(`DEBUG: Buscando código '${searchCode}' para el usuario ${user.id}`);
 
     const { data, error } = await supabase
         .from('campaign_influencers')
@@ -98,14 +95,8 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
         .maybeSingle();
 
     if (error) {
-        console.error('DEBUG: Error en la consulta de búsqueda de código:', error);
+        console.error('Error al buscar el código en la base de datos:', error);
         throw new Error('Error al buscar el código en la base de datos.');
-    }
-    
-    if (data) {
-        console.log('DEBUG: Se encontró un participante:', data.id, 'para la campaña:', data.campaign_id);
-    } else {
-        console.log('DEBUG: No se encontró ningún participante con ese código para este usuario.');
     }
 
     return data as CampaignParticipantInfo | null;
@@ -201,6 +192,24 @@ export async function registerInfluencerForCampaign(
 ): Promise<{ generated_code: string }> {
     const supabase = createSupabaseServerClient();
     
+    // Step 0: Check campaign capacity
+    const { data: campaignData, error: campaignFetchError } = await supabase
+      .from('campaigns')
+      .select('max_influencers, campaign_influencers(count)')
+      .eq('id', campaignId)
+      .single();
+
+    if (campaignFetchError || !campaignData) {
+      throw new Error('No se pudo verificar la información de la campaña.');
+    }
+    
+    const maxInfluencers = campaignData.max_influencers;
+    const currentInfluencers = campaignData.campaign_influencers[0]?.count ?? 0;
+
+    if (maxInfluencers !== null && maxInfluencers > 0 && currentInfluencers >= maxInfluencers) {
+      throw new Error('Esta campaña ha alcanzado el número máximo de influencers.');
+    }
+
     // Step 1: Upsert Influencer profile
     const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
@@ -230,7 +239,6 @@ export async function registerInfluencerForCampaign(
         .eq('influencer_id', influencer.id)
         .maybeSingle();
 
-    // If they are, just return their existing code
     if (existingParticipant) {
         return { generated_code: existingParticipant.generated_code };
     }
@@ -246,13 +254,13 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada para generar código.');
     }
 
-    const baseName = influencer.name.split(' ')[0].toUpperCase();
-    let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
+    const baseName = influencer.name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '');
+    let suffix = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
     let finalCode = '';
     
     // Loop to find a unique code across the entire table
     while (true) {
-        const tentativeCode = `${baseName}${discountNumber}`;
+        const tentativeCode = `${baseName}${suffix}`;
         const { data: codeCheck, error: codeCheckError } = await supabase
             .from('campaign_influencers')
             .select('id')
@@ -266,10 +274,10 @@ export async function registerInfluencerForCampaign(
 
         if (!codeCheck) {
             finalCode = tentativeCode;
-            break; // Found a unique code
+            break; 
         }
         
-        discountNumber++; // Increment and try again
+        suffix++; 
     }
 
     // Step 4: Insert the new participant record with the unique code
@@ -285,7 +293,10 @@ export async function registerInfluencerForCampaign(
     
     if (participantError) {
         console.error('Error registering influencer for campaign:', participantError);
-        throw new Error('Ya existe un código de descuento igual. Por favor, inténtalo de nuevo.');
+        if (participantError.code === '23505') {
+            throw new Error('Ya existe un código de descuento igual. Por favor, inténtalo de nuevo.');
+        }
+        throw new Error('No se pudo registrar al influencer en la campaña.');
     }
 
     if (!newParticipant) {
@@ -378,15 +389,3 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
-
-
-
-    
-
-    
-
-    
-
-    
-
-    
