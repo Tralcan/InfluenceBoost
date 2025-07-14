@@ -73,10 +73,10 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
 
 
   useEffect(() => {
-    if (state.success && state.code) {
+    if (state.success === true && state.code) {
       router.push(`/campaign/${campaign.id}/success?code=${state.code}`);
     }
-    if (!state.success && state.error) {
+    if (state.success === false && state.error) {
       toast({
         variant: 'destructive',
         title: 'Error en el Registro',

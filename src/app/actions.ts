@@ -117,13 +117,13 @@ export async function registerInfluencerAction(
     const other = formData.get('other_social_media') as string;
 
     if (!phone) {
-        return { success: false, error: 'El celular es obligatorio.' };
+        return { success: false, error: 'El celular es obligatorio.', code: null };
     }
      if (!name || !email) {
-        return { success: false, error: 'El nombre y el email son obligatorios.' };
+        return { success: false, error: 'El nombre y el email son obligatorios.', code: null };
     }
     if (!instagram && !tiktok && !x && !other) {
-        return { success: false, error: 'Debes proporcionar al menos una red social.' };
+        return { success: false, error: 'Debes proporcionar al menos una red social.', code: null };
     }
 
     try {
@@ -137,7 +137,7 @@ export async function registerInfluencerAction(
             x_handle: x,
             other_social_media: other
         });
-        revalidatePath(`/dashboard/campaigns/${campaignId}`);
+        revalidatePath(`/campaign/${campaignId}`);
         return { success: true, code: result.generated_code, error: null };
     } catch (error) {
         console.error('Error registering influencer:', error);
