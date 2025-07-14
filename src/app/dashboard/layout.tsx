@@ -24,11 +24,13 @@ import {
   Home,
   Search,
   PanelLeft,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/logo';
 import { supabase } from '@/lib/supabase/client';
 import { AuthButton } from '@/components/auth-button';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
@@ -37,28 +39,49 @@ export default function DashboardLayout({
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      if (!data.user) {
+        router.push('/');
+      } else {
+        setUser(data.user);
+        setLoading(false);
+      }
     };
     fetchUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null);
+        if (!session?.user) {
+          router.push('/');
+        } else {
+          setUser(session.user);
+        }
+        setLoading(false);
       }
     );
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   const handleLinkClick = () => {
     setIsSidebarOpen(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Verificando sesión...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-muted/40">
