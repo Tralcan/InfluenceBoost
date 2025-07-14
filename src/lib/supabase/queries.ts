@@ -186,65 +186,37 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada');
     }
 
-    let influencer: Influencer | null = null;
-    
-    // Step 1: Upsert Influencer (Create or Update) using a robust "find-then-act" approach.
-    const { data: existingInfluencer, error: findError } = await supabase
+    // Step 1: Use Supabase upsert to create or update the influencer atomically.
+    // This avoids race conditions and complex "find-then-act" logic.
+    // We tell Supabase to check for conflicts on the 'phone_number' column.
+    const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
-        .select('*')
-        .eq('phone_number', influencerData.phone_number)
-        .maybeSingle();
-
-    if (findError) {
-        console.error('Error finding influencer by phone:', findError);
-        throw new Error('Error al buscar el influencer por teléfono.');
-    }
-
-    const dataToUpsert = {
-        name: influencerData.name,
-        email: influencerData.email,
-        phone_number: influencerData.phone_number,
-        instagram_handle: influencerData.instagram_handle,
-        tiktok_handle: influencerData.tiktok_handle,
-        x_handle: influencerData.x_handle,
-        other_social_media: influencerData.other_social_media,
-    };
-
-    if (existingInfluencer) {
-        // Influencer exists, update them.
-        const { data: updated, error: updateError } = await supabase
-            .from('influencers')
-            .update(dataToUpsert)
-            .eq('id', existingInfluencer.id)
-            .select()
-            .single();
-        
-        if (updateError) {
-            console.error('Error updating influencer:', updateError);
-            throw new Error('Error al actualizar los datos del influencer.');
-        }
-        influencer = updated;
-    } else {
-        // Influencer does not exist, create them.
-        const { data: newInfluencer, error: createError } = await supabase
-            .from('influencers')
-            .insert(dataToUpsert)
-            .select()
-            .single();
-
-        if (createError) {
-             if (createError.code === '23505') { 
-                throw new Error('Este número de teléfono ya está registrado.');
-            }
-            console.error('Error creating influencer:', createError);
-            throw new Error('No se pudo crear el perfil del influencer.');
-        }
-        influencer = newInfluencer;
-    }
+        .upsert({
+            id: influencerData.id, // Pass ID if available, for explicit updates
+            name: influencerData.name,
+            email: influencerData.email,
+            phone_number: influencerData.phone_number,
+            instagram_handle: influencerData.instagram_handle,
+            tiktok_handle: influencerData.tiktok_handle,
+            x_handle: influencerData.x_handle,
+            other_social_media: influencerData.other_social_media,
+        }, {
+            onConflict: 'phone_number',
+            ignoreDuplicates: false,
+        })
+        .select()
+        .single();
     
-    if (!influencer) {
+    if (upsertError) {
+        console.error('Error upserting influencer:', upsertError);
+        throw new Error('No se pudo crear o actualizar el perfil del influencer.');
+    }
+
+    if (!upsertedInfluencer) {
         throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
     }
+    
+    const influencer = upsertedInfluencer;
 
     // Step 2: Check if this influencer is already part of this campaign
     const { data: existingParticipant, error: checkError } = await supabase
@@ -275,7 +247,7 @@ export async function registerInfluencerForCampaign(
             .from('campaign_influencers')
             .select('id')
             .eq('generated_code', generatedCode)
-            .eq('campaign_id', campaignId) // Only check for duplicates within the same campaign
+            .eq('campaign_id', campaignId)
             .maybeSingle();
 
         if (codeCheckError) {
@@ -284,12 +256,11 @@ export async function registerInfluencerForCampaign(
         }
 
         if (!codeCheck) {
-            isCodeUnique = true; // The code is unique
+            isCodeUnique = true;
         } else {
-            discountNumber++; // The code exists, increment and try again
+            discountNumber++; 
         }
     }
-
 
     // Step 4: Insert the new participant record
     const { data: participant, error: participantError } = await supabase
@@ -303,7 +274,7 @@ export async function registerInfluencerForCampaign(
         .single();
     
     if (participantError) {
-        if (participantError.code === '23505') {
+        if (participantError.code === '23505') { // This could be a race condition, although unlikely now
             throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
         }
         console.error('Error registering influencer for campaign:', participantError);
