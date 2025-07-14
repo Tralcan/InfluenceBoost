@@ -18,8 +18,8 @@ export default async function InfluencerCampaignPage({ params }: { params: { id:
   const isCampaignOver = isPast(parseISO(campaign.end_date));
   
   const currentInfluencers = campaign.campaign_influencers.length;
-  const maxInfluencers = campaign.max_influencers;
-  const isCampaignFull = maxInfluencers !== null && maxInfluencers > 0 && currentInfluencers >= maxInfluencers;
+  const maxInfluencers = campaign.max_influencers ?? 0;
+  const isCampaignFull = maxInfluencers > 0 && currentInfluencers >= maxInfluencers;
 
 
   const renderContent = () => {
