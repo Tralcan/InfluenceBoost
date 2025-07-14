@@ -78,31 +78,41 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        // No user is logged in, so they can't own any campaigns.
+        console.log('DEBUG: No hay usuario autenticado, no se puede buscar el código.');
         return null;
     }
 
-    // This query is now secure. It fetches the participant and joins with campaigns,
-    // but crucially filters the campaigns by the logged-in user's ID.
-    // If the code exists but belongs to another user's campaign, the query will return nothing.
-    const { data, error } = await supabase
+    const searchCode = code.toUpperCase();
+    console.log(`DEBUG: Buscando código '${searchCode}' para el usuario ${user.id}`);
+
+    // Consulta segura que filtra por el código Y se asegura de que la campaña pertenezca al usuario autenticado.
+    const query = supabase
         .from('campaign_influencers')
         .select(`
             *,
-            campaigns!inner(
-                *
-            ),
-            influencers ( * )
+            campaigns!inner(id, name, discount, end_date, user_id),
+            influencers(*)
         `)
-        .eq('generated_code', code.toUpperCase())
-        .eq('campaigns.user_id', user.id) // Secure filter by owner
+        .eq('generated_code', searchCode)
+        .eq('campaigns.user_id', user.id)
         .maybeSingle();
 
+    // Para depuración, puedes ver la consulta que se construiría (esto es una aproximación)
+    // console.log('DEBUG: Supabase query (approximated):', query.toString());
+
+    const { data, error } = await query;
+
     if (error) {
-        console.error('Error securely fetching participant by code:', error);
-        throw new Error('No se pudo buscar el código de forma segura.');
+        console.error('DEBUG: Error en la consulta de búsqueda de código:', error);
+        throw new Error('Error al buscar el código en la base de datos.');
     }
     
+    if (data) {
+        console.log('DEBUG: Se encontró un participante:', data);
+    } else {
+        console.log('DEBUG: No se encontró ningún participante con ese código para este usuario.');
+    }
+
     return data as CampaignParticipantInfo | null;
 }
 
@@ -376,6 +386,8 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 }
 
 
+
+    
 
     
 
