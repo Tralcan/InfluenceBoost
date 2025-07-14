@@ -106,7 +106,7 @@ export async function registerInfluencerAction(
     campaignId: string,
     prevState: any,
     formData: FormData
-) {
+): Promise<{ success: boolean; code: string | null; error: string | null; }> {
     const influencerId = formData.get('influencer_id') as string | null;
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
@@ -139,7 +139,7 @@ export async function registerInfluencerAction(
         });
         
         revalidatePath(`/campaign/${campaignId}`);
-        redirect(`/campaign/${campaignId}/success?code=${result.generated_code}`);
+        return { success: true, code: result.generated_code, error: null };
 
     } catch (error) {
         console.error('Error registering influencer:', error);
