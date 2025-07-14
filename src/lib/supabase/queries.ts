@@ -190,8 +190,7 @@ export async function registerInfluencerForCampaign(
     
     // Step 1: Upsert Influencer (Create or Update)
     if (influencerData.id) {
-        // This is an existing influencer, so update their info.
-        const { error: updateError } = await supabase
+        const { data: updated, error: updateError } = await supabase
             .from('influencers')
             .update({
                 name: influencerData.name,
@@ -202,29 +201,17 @@ export async function registerInfluencerForCampaign(
                 x_handle: influencerData.x_handle,
                 other_social_media: influencerData.other_social_media,
             })
-            .eq('id', influencerData.id);
+            .eq('id', influencerData.id)
+            .select()
+            .single();
         
         if (updateError) {
             console.error('Error updating influencer:', updateError);
             throw new Error('Error al actualizar los datos del influencer.');
         }
-
-        // Refetch the updated influencer data to ensure we have the latest info.
-        const { data: refetchedInfluencer, error: refetchError } = await supabase
-            .from('influencers')
-            .select('*')
-            .eq('id', influencerData.id)
-            .single();
-
-        if (refetchError || !refetchedInfluencer) {
-            console.error('Error refetching influencer after update:', refetchError);
-            throw new Error('No se pudo recuperar la información del influencer después de la actualización.');
-        }
-        
-        influencer = refetchedInfluencer;
+        influencer = updated;
 
     } else {
-        // This is a new influencer, create them.
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -249,8 +236,8 @@ export async function registerInfluencerForCampaign(
         influencer = newInfluencer;
     }
     
-    if (!influencer || !influencer.phone_number) {
-        throw new Error("No se pudo obtener la información del influencer o falta el número de teléfono.");
+    if (!influencer) {
+        throw new Error("No se pudo obtener la información del influencer.");
     }
 
     // Step 2: Check if this influencer is already part of this campaign
@@ -266,19 +253,36 @@ export async function registerInfluencerForCampaign(
       throw new Error('Error al verificar la participación.');
     }
 
-    // If they are already in the campaign, just return their existing code.
     if (existingParticipant) {
       return { generated_code: existingParticipant.generated_code };
     }
 
-    // Step 3: Generate the unique code based on the new logic
-    const firstName = influencer.name.split(' ')[0].toUpperCase();
-    const campaignIdLastDigit = campaignId.slice(-1);
-    const discountNumber = campaign.discount.match(/\d+/)?.[0] || '0';
-    const cleanPhoneNumber = influencer.phone_number.replace(/\D/g, '');
-    const phoneLastDigit = cleanPhoneNumber.slice(-1);
-    
-    const generatedCode = `${firstName}${campaignIdLastDigit}${discountNumber}${phoneLastDigit}`.toUpperCase();
+    // Step 3: Generate a unique code with iterative checking
+    const baseName = influencer.name.split(' ')[0].toUpperCase();
+    let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
+    let generatedCode = '';
+    let isCodeUnique = false;
+
+    while (!isCodeUnique) {
+        generatedCode = `${baseName}${discountNumber}`;
+        const { data: codeCheck, error: codeCheckError } = await supabase
+            .from('campaign_influencers')
+            .select('id')
+            .eq('generated_code', generatedCode)
+            .eq('campaign_id', campaignId) // Only check for duplicates within the same campaign
+            .maybeSingle();
+
+        if (codeCheckError) {
+            console.error('Error checking for existing code:', codeCheckError);
+            throw new Error('No se pudo verificar la unicidad del código.');
+        }
+
+        if (!codeCheck) {
+            isCodeUnique = true; // The code is unique
+        } else {
+            discountNumber++; // The code exists, increment and try again
+        }
+    }
 
 
     // Step 4: Insert the new participant record
@@ -294,7 +298,6 @@ export async function registerInfluencerForCampaign(
     
     if (participantError) {
         if (participantError.code === '23505') {
-            // This case is now much less likely, but good to handle.
             throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
         }
         console.error('Error registering influencer for campaign:', participantError);
@@ -381,3 +384,4 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
+
