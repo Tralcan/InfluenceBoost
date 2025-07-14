@@ -80,19 +80,26 @@ export async function getCampaignById(id: string): Promise<CampaignWithParticipa
 
 export async function getParticipantByCode(code: string): Promise<CampaignParticipantInfo | null> {
     const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return null; // No user, no results
+    }
+
     const { data, error } = await supabase
         .from('campaign_influencers')
         .select(`
             *,
-            campaigns ( * ),
+            campaigns!inner ( * ),
             influencers ( * )
         `)
         .eq('generated_code', code.toUpperCase())
+        .eq('campaigns.user_id', user.id) // Filter by the authenticated user's campaigns
         .single();
 
     if (error) {
         if (error.code === 'PGRST116') {
-            return null; 
+            return null; // No result found, which is expected
         }
         console.error('Error fetching participant by code:', error);
         throw new Error('No se pudo buscar el código.');
