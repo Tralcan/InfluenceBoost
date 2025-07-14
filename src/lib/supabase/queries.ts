@@ -37,7 +37,16 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
     return [];
   }
 
-  return campaigns as unknown as CampaignWithParticipants[];
+  // Map over the campaigns to ensure the structure matches CampaignWithParticipants
+  const mappedCampaigns = campaigns.map(c => ({
+    ...c,
+    user_id: user.id, // Add user_id as it's part of the type
+    created_at: '', // Add placeholder for type conformity if not selected
+    max_influencers: null, // Add placeholder
+    campaign_influencers: c.campaign_influencers,
+  }));
+
+  return mappedCampaigns as unknown as CampaignWithParticipants[];
 }
 
 export async function getCampaignById(id: string): Promise<CampaignWithParticipants | null> {
@@ -361,7 +370,3 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
-
-
-
-    
