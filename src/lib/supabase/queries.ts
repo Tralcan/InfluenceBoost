@@ -202,7 +202,7 @@ export async function registerInfluencerForCampaign(
                 x_handle: influencerData.x_handle,
                 other_social_media: influencerData.other_social_media,
             })
-            .eq('id', influencerData.id)
+            .eq('id', influencerData.id);
         
         if (updateError) {
             console.error('Error updating influencer:', updateError);
