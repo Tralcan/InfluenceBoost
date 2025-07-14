@@ -75,28 +75,37 @@ export async function getCampaignById(id: string): Promise<CampaignWithParticipa
 
 export async function getParticipantByCode(code: string): Promise<CampaignParticipantInfo | null> {
     const supabase = createSupabaseServerClient();
-    
-    // Con RLS activado, esta consulta es segura.
-    // Supabase filtrará automáticamente los resultados para devolver solo
-    // aquellos registros de 'campaign_influencers' vinculados a campañas
-    // que el usuario autenticado posee.
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        // No user is logged in, so they can't own any campaigns.
+        return null;
+    }
+
+    // This query is now secure. It fetches the participant and joins with campaigns,
+    // but crucially filters the campaigns by the logged-in user's ID.
+    // If the code exists but belongs to another user's campaign, the query will return nothing.
     const { data, error } = await supabase
         .from('campaign_influencers')
         .select(`
             *,
-            campaigns ( * ),
+            campaigns!inner(
+                *
+            ),
             influencers ( * )
         `)
         .eq('generated_code', code.toUpperCase())
+        .eq('campaigns.user_id', user.id) // Secure filter by owner
         .maybeSingle();
 
     if (error) {
-        console.error('Error fetching participant by code:', error);
-        throw new Error('No se pudo buscar el código.');
+        console.error('Error securely fetching participant by code:', error);
+        throw new Error('No se pudo buscar el código de forma segura.');
     }
     
     return data as CampaignParticipantInfo | null;
 }
+
 
 export async function getInfluencerByPhone(phone: string): Promise<Influencer | null> {
     const supabase = createSupabaseServerClient();
@@ -367,5 +376,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 }
 
 
+
+    
 
     
