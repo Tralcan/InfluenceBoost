@@ -188,20 +188,34 @@ export async function registerInfluencerForCampaign(
 
     let influencer: Influencer | null = null;
     
-    // Step 1: Upsert Influencer (Create or Update)
-    if (influencerData.id) {
+    // Step 1: Upsert Influencer (Create or Update) using a robust "find-then-act" approach.
+    const { data: existingInfluencer, error: findError } = await supabase
+        .from('influencers')
+        .select('*')
+        .eq('phone_number', influencerData.phone_number)
+        .maybeSingle();
+
+    if (findError) {
+        console.error('Error finding influencer by phone:', findError);
+        throw new Error('Error al buscar el influencer por teléfono.');
+    }
+
+    const dataToUpsert = {
+        name: influencerData.name,
+        email: influencerData.email,
+        phone_number: influencerData.phone_number,
+        instagram_handle: influencerData.instagram_handle,
+        tiktok_handle: influencerData.tiktok_handle,
+        x_handle: influencerData.x_handle,
+        other_social_media: influencerData.other_social_media,
+    };
+
+    if (existingInfluencer) {
+        // Influencer exists, update them.
         const { data: updated, error: updateError } = await supabase
             .from('influencers')
-            .update({
-                name: influencerData.name,
-                email: influencerData.email,
-                phone_number: influencerData.phone_number,
-                instagram_handle: influencerData.instagram_handle,
-                tiktok_handle: influencerData.tiktok_handle,
-                x_handle: influencerData.x_handle,
-                other_social_media: influencerData.other_social_media,
-            })
-            .eq('id', influencerData.id)
+            .update(dataToUpsert)
+            .eq('id', existingInfluencer.id)
             .select()
             .single();
         
@@ -210,19 +224,11 @@ export async function registerInfluencerForCampaign(
             throw new Error('Error al actualizar los datos del influencer.');
         }
         influencer = updated;
-
     } else {
+        // Influencer does not exist, create them.
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
-            .insert({
-                name: influencerData.name,
-                email: influencerData.email,
-                phone_number: influencerData.phone_number,
-                instagram_handle: influencerData.instagram_handle,
-                tiktok_handle: influencerData.tiktok_handle,
-                x_handle: influencerData.x_handle,
-                other_social_media: influencerData.other_social_media,
-            })
+            .insert(dataToUpsert)
             .select()
             .single();
 
@@ -237,7 +243,7 @@ export async function registerInfluencerForCampaign(
     }
     
     if (!influencer) {
-        throw new Error("No se pudo obtener la información del influencer.");
+        throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
     }
 
     // Step 2: Check if this influencer is already part of this campaign
@@ -385,3 +391,6 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
     return finalParticipantData as CampaignParticipantInfo;
 }
 
+
+
+    
