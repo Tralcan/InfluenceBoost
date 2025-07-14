@@ -61,7 +61,6 @@ export async function getCampaignById(id: string): Promise<CampaignWithParticipa
     throw new Error('No se pudo obtener la campaña.');
   }
 
-  // RLS ensures we can only fetch campaigns owned by the user, but we can double check.
   const { data: { user } } = await supabase.auth.getUser();
   if (data && user && data.user_id !== user.id) {
     return null;
@@ -143,7 +142,6 @@ export async function updateCampaign(
   data: Partial<Omit<Campaign, 'id' | 'created_at' | 'user_id'>>
 ): Promise<Campaign> {
   const supabase = createSupabaseServerClient();
-  // RLS handles security, so we just update.
   const { error: updateError } = await supabase
     .from('campaigns')
     .update(data)
@@ -189,7 +187,9 @@ export async function registerInfluencerForCampaign(
 
     let influencer: Influencer | null = null;
     
+    // Step 1: Upsert Influencer (Create or Update)
     if (influencerData.id) {
+        // If an ID is provided, it means we found an existing user. Update them.
         const { data: updatedInfluencer, error: updateError } = await supabase
             .from('influencers')
             .update({
@@ -212,6 +212,7 @@ export async function registerInfluencerForCampaign(
         influencer = updatedInfluencer;
 
     } else {
+        // No ID, so this is a new influencer. Create them.
         const { data: newInfluencer, error: createError } = await supabase
             .from('influencers')
             .insert({
@@ -227,6 +228,9 @@ export async function registerInfluencerForCampaign(
             .single();
 
         if (createError) {
+             if (createError.code === '23505') { // Unique constraint violation for phone_number
+                throw new Error('Este número de teléfono ya está registrado.');
+            }
             console.error('Error creating influencer:', createError);
             throw new Error('No se pudo crear el perfil del influencer.');
         }
@@ -237,6 +241,7 @@ export async function registerInfluencerForCampaign(
         throw new Error("No se pudo obtener la información del influencer después de crearlo o actualizarlo.");
     }
 
+    // Step 2: Check if already registered for this specific campaign
     const { data: existingParticipant, error: checkError } = await supabase
         .from('campaign_influencers')
         .select('id')
@@ -253,6 +258,7 @@ export async function registerInfluencerForCampaign(
       throw new Error('Este influencer ya está registrado en esta campaña.');
     }
 
+    // Step 3: Register influencer for the campaign
     const discountValue = campaign.discount.match(/\d+/)?.[0] || '10';
     const generatedCode = `${influencer.name.split(' ')[0].toUpperCase()}${discountValue}`;
 
@@ -276,7 +282,6 @@ export async function registerInfluencerForCampaign(
 
 export async function deleteCampaign(campaignId: string): Promise<void> {
     const supabase = createSupabaseServerClient();
-    // RLS ensures only the owner can delete.
     const { error } = await supabase
         .from('campaigns')
         .delete()
@@ -291,7 +296,6 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
     const supabase = createSupabaseServerClient();
     
-    // Fetch current uses for the participant
     const { data: participant, error: fetchError } = await supabase
         .from('campaign_influencers')
         .select('uses')
@@ -303,18 +307,18 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo encontrar al participante para incrementar el uso.');
     }
 
-    // Increment participant's uses
-    const { error: incrementError } = await supabase
+    const { data: updatedParticipant, error: incrementError } = await supabase
         .from('campaign_influencers')
         .update({ uses: participant.uses + 1 })
-        .eq('id', participantId);
+        .eq('id', participantId)
+        .select()
+        .single();
     
-    if (incrementError) {
+    if (incrementError || !updatedParticipant) {
         console.error('Error incrementing participant uses:', incrementError);
         throw new Error('No se pudo actualizar el contador de usos del participante.');
     }
     
-    // Fetch current points for the influencer
     const { data: influencer, error: fetchInfluencerError } = await supabase
         .from('influencers')
         .select('points')
@@ -326,7 +330,6 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo encontrar al influencer para actualizar los puntos.');
     }
 
-    // Increment influencer's points (e.g., 10 points per use)
     const { error: pointsError } = await supabase
         .from('influencers')
         .update({ points: influencer.points + 10 })
@@ -337,8 +340,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo actualizar los puntos del influencer.');
     }
     
-    // Refetch the updated participant with all details
-    const { data: updatedParticipant, error: refetchError } = await supabase
+    const { data: finalParticipantData, error: refetchError } = await supabase
         .from('campaign_influencers')
         .select(`
             *,
@@ -348,10 +350,10 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         .eq('id', participantId)
         .single();
 
-    if (refetchError || !updatedParticipant) {
+    if (refetchError || !finalParticipantData) {
         console.error('Error refetching participant after usage increment:', refetchError);
         throw new Error('No se pudo recargar la información del participante tras la actualización.');
     }
 
-    return updatedParticipant as CampaignParticipantInfo;
+    return finalParticipantData as CampaignParticipantInfo;
 }
