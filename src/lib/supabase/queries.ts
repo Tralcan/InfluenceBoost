@@ -82,28 +82,30 @@ export async function getCampaignById(id: string): Promise<CampaignWithParticipa
 
 export async function getParticipantByCode(code: string): Promise<CampaignParticipantInfo | null> {
     const supabase = createSupabaseServerClient();
-    
-    // The RLS policy on 'campaigns' will automatically filter the results
-    // to only include campaigns owned by the authenticated user.
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        // No user is logged in, so they can't own any campaigns.
+        return null;
+    }
+
     const { data, error } = await supabase
         .from('campaign_influencers')
         .select(`
             *,
-            campaigns!inner ( * ),
-            influencers ( * )
+            campaigns!inner( * ),
+            influencers( * )
         `)
         .eq('generated_code', code.toUpperCase())
-        .single();
+        .eq('campaigns.user_id', user.id) // Securely filter by the authenticated user's ID
+        .maybeSingle(); // Use maybeSingle to handle no results gracefully
 
     if (error) {
-        if (error.code === 'PGRST116') {
-            return null; // No result found, which is expected and secure.
-        }
         console.error('Error fetching participant by code:', error);
         throw new Error('No se pudo buscar el código.');
     }
     
-    return data as CampaignParticipantInfo;
+    return data as CampaignParticipantInfo | null;
 }
 
 export async function getInfluencerByPhone(phone: string): Promise<Influencer | null> {
