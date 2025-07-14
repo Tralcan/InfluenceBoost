@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, CheckCircle, Rocket, Users } from 'lucide-react';
@@ -15,7 +16,7 @@ export default function Home() {
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="flex items-center space-x-2">
               <Button asChild variant="default">
-                <Link href="/dashboard">Empezar <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/login">Empezar <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </nav>
           </div>
@@ -33,7 +34,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
                <Button asChild size="lg">
-                <Link href="/dashboard">Crear Primera Campaña <Rocket className="ml-2 h-4 w-4" /></Link>
+                <Link href="/login">Crear Primera Campaña <Rocket className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
           </div>

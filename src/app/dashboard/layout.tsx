@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -44,9 +45,9 @@ export default function DashboardLayout({
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        router.push('/');
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) {
+        router.push('/login');
       } else {
         setUser(data.user);
         setLoading(false);
@@ -57,7 +58,7 @@ export default function DashboardLayout({
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!session?.user) {
-          router.push('/');
+          router.push('/login');
         } else {
           setUser(session.user);
         }
