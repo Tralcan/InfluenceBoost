@@ -85,21 +85,31 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
     }
   }, [state, router, campaign.id, toast]);
 
+  const isDataUrl = campaign.image_url?.startsWith('data:image');
 
   return (
     <Card className="w-full max-w-lg mx-auto">
       <CardHeader className="text-center space-y-4">
         {campaign.image_url && (
             <div className="aspect-video overflow-hidden rounded-lg border">
-                <Image
-                    data-ai-hint="campaign image"
-                    src={campaign.image_url}
-                    alt={campaign.name}
-                    width={1200}
-                    height={630}
-                    className="object-cover"
-                    priority
-                />
+                {isDataUrl ? (
+                    <Image
+                        data-ai-hint="campaign image"
+                        src={campaign.image_url}
+                        alt={campaign.name}
+                        width={1200}
+                        height={630}
+                        className="object-cover w-full h-full"
+                        priority
+                    />
+                ) : (
+                    <img
+                        data-ai-hint="campaign image"
+                        src={campaign.image_url}
+                        alt={campaign.name}
+                        className="object-cover w-full h-full"
+                    />
+                )}
             </div>
         )}
         <div className="space-y-1">
