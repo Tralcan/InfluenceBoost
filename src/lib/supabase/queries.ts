@@ -37,12 +37,11 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
     return [];
   }
 
-  // Map over the campaigns to ensure the structure matches CampaignWithParticipants
   const mappedCampaigns = campaigns.map(c => ({
     ...c,
-    user_id: user.id, // Add user_id as it's part of the type
-    created_at: '', // Add placeholder for type conformity if not selected
-    max_influencers: null, // Add placeholder
+    user_id: user.id, 
+    created_at: '', 
+    max_influencers: null, 
     campaign_influencers: c.campaign_influencers,
   }));
 
@@ -93,7 +92,7 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
 
     if (error) {
         if (error.code === 'PGRST116') {
-            return null; // Not found, valid search result
+            return null; 
         }
         console.error('Error fetching participant by code:', error);
         throw new Error('No se pudo buscar el código.');
@@ -191,11 +190,9 @@ export async function registerInfluencerForCampaign(
 ): Promise<{ generated_code: string }> {
     const supabase = createSupabaseServerClient();
     
-    // Step 1: Upsert Influencer - this is the safest way.
     const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
         .upsert({
-            id: influencerData.id,
             name: influencerData.name,
             email: influencerData.email,
             phone_number: influencerData.phone_number,
@@ -213,7 +210,6 @@ export async function registerInfluencerForCampaign(
     }
     const influencer = upsertedInfluencer;
 
-    // Step 2: Check if this influencer is ALREADY part of THIS campaign.
     const { data: existingParticipant } = await supabase
         .from('campaign_influencers')
         .select('generated_code')
@@ -225,7 +221,6 @@ export async function registerInfluencerForCampaign(
         return { generated_code: existingParticipant.generated_code };
     }
     
-    // Step 3: Get Campaign details for code generation
     const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
         .select('discount')
@@ -236,7 +231,6 @@ export async function registerInfluencerForCampaign(
         throw new Error('Campaña no encontrada para generar código.');
     }
 
-    // Step 4: Generate a globally unique code using the specified logic.
     const baseName = influencer.name.split(' ')[0].toUpperCase();
     let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
     let finalCode = '';
@@ -262,7 +256,6 @@ export async function registerInfluencerForCampaign(
         discountNumber++; 
     }
 
-    // Step 5: Insert the new participant record with the unique code.
     const { data: newParticipant, error: participantError } = await supabase
         .from('campaign_influencers')
         .insert({
@@ -301,50 +294,51 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
     const supabase = createSupabaseServerClient();
 
-    // The Supabase Edge Functions for these RPCs should be:
-    //
-    // -- increment_participant_uses
-    // create or replace function increment_participant_uses(row_id uuid)
-    // returns void
-    // language sql
-    // as $$
-    //   update public.campaign_influencers
-    //   set uses = uses + 1
-    //   where id = row_id;
-    // $$;
-    //
-    // -- increment_influencer_points
-    // create or replace function increment_influencer_points(row_id uuid, points_to_add int)
-    // returns void
-    // language sql
-    // as $$
-    //   update public.influencers
-    //   set points = points + points_to_add
-    //   where id = row_id;
-    // $$;
+    const { data: participantData, error: participantError } = await supabase
+        .from('campaign_influencers')
+        .select('uses')
+        .eq('id', participantId)
+        .single();
 
-    // Step 1: Increment the uses count on the campaign_influencers table.
-    const { error: usesError } = await supabase.rpc('increment_participant_uses', {
-        row_id: participantId,
-    });
+    if (participantError || !participantData) {
+        console.error('Error fetching participant data:', participantError);
+        throw new Error('No se pudo encontrar al participante.');
+    }
 
-    if (usesError) {
-        console.error('Error incrementing participant uses:', usesError);
+    const { data: influencerData, error: influencerError } = await supabase
+        .from('influencers')
+        .select('points')
+        .eq('id', influencerId)
+        .single();
+    
+    if (influencerError || !influencerData) {
+        console.error('Error fetching influencer data:', influencerError);
+        throw new Error('No se pudo encontrar al influencer.');
+    }
+
+    const newUses = participantData.uses + 1;
+    const newPoints = influencerData.points + 10;
+
+    const { error: usesUpdateError } = await supabase
+        .from('campaign_influencers')
+        .update({ uses: newUses })
+        .eq('id', participantId);
+    
+    if (usesUpdateError) {
+        console.error('Error incrementing participant uses:', usesUpdateError);
         throw new Error('No se pudo actualizar el contador de usos del participante.');
     }
 
-    // Step 2: Increment the total points on the influencers table.
-    const { error: pointsError } = await supabase.rpc('increment_influencer_points', {
-        row_id: influencerId,
-        points_to_add: 10,
-    });
+    const { error: pointsUpdateError } = await supabase
+        .from('influencers')
+        .update({ points: newPoints })
+        .eq('id', influencerId);
 
-    if (pointsError) {
-        // Not throwing an error here as it's a non-critical part of the flow, but logging it.
-        console.error('Error incrementing influencer points:', pointsError);
+    if (pointsUpdateError) {
+        console.error('Error incrementing influencer points:', pointsUpdateError);
+        // Not a critical error, so we just log it and continue
     }
     
-    // Step 3: Fetch the updated participant data to return to the client for revalidation.
     const { data: finalParticipantData, error: refetchError } = await supabase
         .from('campaign_influencers')
         .select(`
