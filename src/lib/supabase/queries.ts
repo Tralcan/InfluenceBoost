@@ -83,14 +83,10 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
     }
 
     const searchCode = code.toUpperCase();
+    
     console.log(`DEBUG: Buscando código '${searchCode}' para el usuario ${user.id}`);
 
-    // La consulta correcta:
-    // 1. Busca en `campaign_influencers` el código.
-    // 2. Usa `campaigns!inner(*)` para hacer un JOIN y obtener los datos de la campaña.
-    // 3. `!inner` asegura que solo se devuelvan resultados si hay una campaña coincidente.
-    // 4. `eq('campaigns.user_id', user.id)` filtra esas campañas para que solo pertenezcan al usuario autenticado.
-    const query = supabase
+    const { data, error } = await supabase
         .from('campaign_influencers')
         .select(`
             *,
@@ -100,8 +96,6 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
         .eq('generated_code', searchCode)
         .eq('campaigns.user_id', user.id)
         .maybeSingle();
-
-    const { data, error } = await query;
 
     if (error) {
         console.error('DEBUG: Error en la consulta de búsqueda de código:', error);
@@ -256,14 +250,13 @@ export async function registerInfluencerForCampaign(
     let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
     let finalCode = '';
     
-    // Loop to find a unique code
+    // Loop to find a unique code across the entire table
     while (true) {
         const tentativeCode = `${baseName}${discountNumber}`;
         const { data: codeCheck, error: codeCheckError } = await supabase
             .from('campaign_influencers')
             .select('id')
             .eq('generated_code', tentativeCode)
-            .eq('campaign_id', campaignId) 
             .maybeSingle();
 
         if (codeCheckError) {
@@ -292,7 +285,7 @@ export async function registerInfluencerForCampaign(
     
     if (participantError) {
         console.error('Error registering influencer for campaign:', participantError);
-        throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
+        throw new Error('Ya existe un código de descuento igual. Por favor, inténtalo de nuevo.');
     }
 
     if (!newParticipant) {
@@ -387,6 +380,8 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 }
 
 
+
+    
 
     
 
