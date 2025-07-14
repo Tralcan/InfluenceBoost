@@ -137,8 +137,10 @@ export async function registerInfluencerAction(
             x_handle: x,
             other_social_media: other
         });
+        
         revalidatePath(`/campaign/${campaignId}`);
-        return { success: true, code: result.generated_code, error: null };
+        redirect(`/campaign/${campaignId}/success?code=${result.generated_code}`);
+
     } catch (error) {
         console.error('Error registering influencer:', error);
         if (error instanceof Error) {

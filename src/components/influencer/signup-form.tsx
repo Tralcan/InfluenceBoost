@@ -32,7 +32,6 @@ const initialState = {
 };
 
 export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [state, formAction] = useFormState(registerInfluencerAction.bind(null, campaign.id), initialState);
 
@@ -73,17 +72,14 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
 
 
   useEffect(() => {
-    if (state.success === true && state.code) {
-      router.push(`/campaign/${campaign.id}/success?code=${state.code}`);
-    }
-    if (state.success === false && state.error) {
+    if (state?.error) {
       toast({
         variant: 'destructive',
         title: 'Error en el Registro',
         description: state.error,
       });
     }
-  }, [state, router, campaign.id, toast]);
+  }, [state, toast]);
 
   const isDataUrl = campaign.image_url?.startsWith('data:image');
 
@@ -180,7 +176,7 @@ export function InfluencerSignupForm({ campaign }: { campaign: Campaign }) {
           </div>
           <SubmitButton />
 
-           {state.error && (
+           {state?.error && (
              <Alert variant="destructive" className="mt-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
