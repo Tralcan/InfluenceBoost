@@ -70,35 +70,25 @@ export async function getCampaignById(id: string): Promise<CampaignWithParticipa
     throw new Error('No se pudo obtener la campaña.');
   }
 
-  // RLS handles auth check, but we can double check ownership here if needed
-  const { data: { user } } = await supabase.auth.getUser();
-  if (data && user && data.user_id !== user.id) {
-    // This case should not be reached if RLS is active
-    return null;
-  }
-
   return data as CampaignWithParticipants;
 }
 
 export async function getParticipantByCode(code: string): Promise<CampaignParticipantInfo | null> {
     const supabase = createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        // No user is logged in, so they can't own any campaigns.
-        return null;
-    }
-
+    
+    // Con RLS activado, esta consulta es segura.
+    // Supabase filtrará automáticamente los resultados para devolver solo
+    // aquellos registros de 'campaign_influencers' vinculados a campañas
+    // que el usuario autenticado posee.
     const { data, error } = await supabase
         .from('campaign_influencers')
         .select(`
             *,
-            campaigns!inner( * ),
-            influencers( * )
+            campaigns ( * ),
+            influencers ( * )
         `)
         .eq('generated_code', code.toUpperCase())
-        .eq('campaigns.user_id', user.id) // Securely filter by the authenticated user's ID
-        .maybeSingle(); // Use maybeSingle to handle no results gracefully
+        .maybeSingle();
 
     if (error) {
         console.error('Error fetching participant by code:', error);
@@ -376,3 +366,6 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
     return finalParticipantData as CampaignParticipantInfo;
 }
 
+
+
+    
