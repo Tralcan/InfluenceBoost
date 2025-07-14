@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Copy, Share2 } from 'lucide-react';
-import Link from 'next/link';
 
 interface SuccessCardProps {
   code: string;
@@ -51,9 +50,6 @@ export function SuccessCard({ code }: SuccessCardProps) {
                 <li>Crea historias dedicadas sobre el descuento.</li>
             </ul>
         </div>
-        <Button asChild variant="link">
-            <Link href="/">Volver a la Página Principal</Link>
-        </Button>
       </CardContent>
     </Card>
   );
