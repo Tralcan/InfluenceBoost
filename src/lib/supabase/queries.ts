@@ -5,12 +5,11 @@ import { supabase } from './client';
 import type { Campaign, CampaignInfluencer, CampaignParticipantInfo, CampaignWithParticipants, Influencer } from '../types';
 
 export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
-  // Use count aggregation for campaign_influencers to get an accurate participant count
   const { data: campaigns, error } = await supabase
     .from('campaigns')
     .select(`
       *,
-      campaign_influencers ( count )
+      campaign_influencers ( id )
     `)
     .order('created_at', { ascending: false });
 
@@ -18,21 +17,12 @@ export async function getCampaigns(): Promise<CampaignWithParticipants[]> {
     console.error('Error fetching campaigns:', error);
     throw new Error('No se pudieron obtener las campañas.');
   }
-  
-  // The result needs to be mapped to the expected CampaignWithParticipants structure
-  const campaignsWithCount = campaigns.map(c => {
-    const { campaign_influencers, ...rest } = c;
-    const count = Array.isArray(campaign_influencers) ? (campaign_influencers[0]?.count ?? 0) : 0;
-    
-    return {
-      ...rest,
-      // We return an empty array for campaign_influencers to match the type,
-      // as the dashboard card only needs the count, not the full list.
-      campaign_influencers: new Array(count).fill(null),
-    };
-  });
 
-  return campaignsWithCount as unknown as CampaignWithParticipants[];
+  if (!campaigns) {
+    return [];
+  }
+
+  return campaigns as CampaignWithParticipants[];
 }
 
 export async function getCampaignById(id: string): Promise<CampaignWithParticipants | null> {
@@ -264,11 +254,46 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 }
 
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
-    const { error: rpcError } = await supabase.rpc('increment_influencer_usage', { p_id: participantId, p_influencer_id: influencerId });
+    const { data: participant, error: fetchError } = await supabase
+        .from('campaign_influencers')
+        .select('uses')
+        .eq('id', participantId)
+        .single();
 
-    if (rpcError) {
-        console.error('Error incrementing usage with RPC:', rpcError);
-        throw new Error('No se pudo registrar el uso.');
+    if (fetchError || !participant) {
+        console.error('Error fetching participant for increment:', fetchError);
+        throw new Error('No se pudo encontrar al participante para incrementar el uso.');
+    }
+
+    const { error: incrementError } = await supabase
+        .from('campaign_influencers')
+        .update({ uses: participant.uses + 1 })
+        .eq('id', participantId);
+    
+    if (incrementError) {
+        console.error('Error incrementing participant uses:', incrementError);
+        throw new Error('No se pudo actualizar el contador de usos del participante.');
+    }
+    
+    const { data: influencer, error: fetchInfluencerError } = await supabase
+        .from('influencers')
+        .select('points')
+        .eq('id', influencerId)
+        .single();
+
+    if (fetchInfluencerError || !influencer) {
+        console.error('Error fetching influencer for points increment:', fetchInfluencerError);
+        throw new Error('No se pudo encontrar al influencer para actualizar los puntos.');
+    }
+
+    const { error: pointsError } = await supabase
+        .from('influencers')
+        .update({ points: influencer.points + 10 }) // 1 use = 10 points
+        .eq('id', influencerId);
+    
+    if (pointsError) {
+        console.error('Error incrementing influencer points:', pointsError);
+        throw new Error('No se pudo actualizar los puntos del influencer.');
     }
     
     const { data: updatedParticipant, error: refetchError } = await supabase

@@ -46,7 +46,7 @@ export type CampaignInfluencer = {
 
 // For the main dashboard view: Campaign with its list of participants
 export type CampaignWithParticipants = Campaign & {
-  campaign_influencers: CampaignInfluencer[];
+  campaign_influencers: { id: string }[];
 };
 
 // For the code search result page
