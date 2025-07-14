@@ -190,6 +190,7 @@ export async function registerInfluencerForCampaign(
 ): Promise<{ generated_code: string }> {
     const supabase = createSupabaseServerClient();
     
+    // Step 1: Upsert Influencer profile
     const { data: upsertedInfluencer, error: upsertError } = await supabase
         .from('influencers')
         .upsert({
@@ -210,6 +211,7 @@ export async function registerInfluencerForCampaign(
     }
     const influencer = upsertedInfluencer;
 
+    // Step 2: Check if influencer is already part of THIS campaign
     const { data: existingParticipant } = await supabase
         .from('campaign_influencers')
         .select('generated_code')
@@ -217,10 +219,12 @@ export async function registerInfluencerForCampaign(
         .eq('influencer_id', influencer.id)
         .maybeSingle();
 
+    // If they are, just return their existing code
     if (existingParticipant) {
         return { generated_code: existingParticipant.generated_code };
     }
     
+    // Step 3: If not, generate a new unique code
     const { data: campaign, error: campaignError } = await supabase
         .from('campaigns')
         .select('discount')
@@ -235,12 +239,15 @@ export async function registerInfluencerForCampaign(
     let discountNumber = parseInt(campaign.discount.match(/\d+/)?.[0] || '10', 10);
     let finalCode = '';
     
+    // Loop to find a unique code
     while (true) {
         const tentativeCode = `${baseName}${discountNumber}`;
         const { data: codeCheck, error: codeCheckError } = await supabase
             .from('campaign_influencers')
             .select('id')
             .eq('generated_code', tentativeCode)
+            // CRITICAL FIX: Check only within the current campaign
+            .eq('campaign_id', campaignId) 
             .maybeSingle();
 
         if (codeCheckError) {
@@ -250,12 +257,13 @@ export async function registerInfluencerForCampaign(
 
         if (!codeCheck) {
             finalCode = tentativeCode;
-            break;
+            break; // Found a unique code
         }
         
-        discountNumber++; 
+        discountNumber++; // Increment and try again
     }
 
+    // Step 4: Insert the new participant record with the unique code
     const { data: newParticipant, error: participantError } = await supabase
         .from('campaign_influencers')
         .insert({
@@ -268,7 +276,7 @@ export async function registerInfluencerForCampaign(
     
     if (participantError) {
         console.error('Error registering influencer for campaign:', participantError);
-        throw new Error('No se pudo registrar al influencer en la campaña. Puede que el código ya exista.');
+        throw new Error('Ya existe un código de descuento igual para esta campaña. Inténtalo de nuevo.');
     }
 
     if (!newParticipant) {
@@ -277,6 +285,7 @@ export async function registerInfluencerForCampaign(
 
     return newParticipant;
 }
+
 
 export async function deleteCampaign(campaignId: string): Promise<void> {
     const supabase = createSupabaseServerClient();
@@ -294,6 +303,7 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
 export async function incrementInfluencerCodeUsage(participantId: string, influencerId: string): Promise<CampaignParticipantInfo> {
     const supabase = createSupabaseServerClient();
 
+    // 1. Fetch current data for participant and influencer
     const { data: participantData, error: participantError } = await supabase
         .from('campaign_influencers')
         .select('uses')
@@ -316,9 +326,11 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         throw new Error('No se pudo encontrar al influencer.');
     }
 
+    // 2. Calculate new values
     const newUses = participantData.uses + 1;
     const newPoints = influencerData.points + 10;
 
+    // 3. Update records
     const { error: usesUpdateError } = await supabase
         .from('campaign_influencers')
         .update({ uses: newUses })
@@ -339,6 +351,7 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
         // Not a critical error, so we just log it and continue
     }
     
+    // 4. Re-fetch the updated data to return
     const { data: finalParticipantData, error: refetchError } = await supabase
         .from('campaign_influencers')
         .select(`
@@ -356,7 +369,3 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 
     return finalParticipantData as CampaignParticipantInfo;
 }
-
-    
-
-    
