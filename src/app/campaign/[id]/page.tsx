@@ -19,6 +19,7 @@ export default async function InfluencerCampaignPage({ params }: { params: { id:
   
   const currentInfluencers = campaign.campaign_influencers.length;
   const maxInfluencers = campaign.max_influencers ?? 0;
+  // A campaign is full if the current number of influencers is already greater than or equal to the maximum.
   const isCampaignFull = maxInfluencers > 0 && currentInfluencers >= maxInfluencers;
 
 
