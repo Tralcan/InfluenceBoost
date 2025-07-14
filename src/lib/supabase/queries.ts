@@ -85,7 +85,11 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
     const searchCode = code.toUpperCase();
     console.log(`DEBUG: Buscando código '${searchCode}' para el usuario ${user.id}`);
 
-    // Consulta segura que filtra por el código Y se asegura de que la campaña pertenezca al usuario autenticado.
+    // La consulta correcta:
+    // 1. Busca en `campaign_influencers` el código.
+    // 2. Usa `campaigns!inner(*)` para hacer un JOIN y obtener los datos de la campaña.
+    // 3. `!inner` asegura que solo se devuelvan resultados si hay una campaña coincidente.
+    // 4. `eq('campaigns.user_id', user.id)` filtra esas campañas para que solo pertenezcan al usuario autenticado.
     const query = supabase
         .from('campaign_influencers')
         .select(`
@@ -97,9 +101,6 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
         .eq('campaigns.user_id', user.id)
         .maybeSingle();
 
-    // Para depuración, puedes ver la consulta que se construiría (esto es una aproximación)
-    // console.log('DEBUG: Supabase query (approximated):', query.toString());
-
     const { data, error } = await query;
 
     if (error) {
@@ -108,7 +109,7 @@ export async function getParticipantByCode(code: string): Promise<CampaignPartic
     }
     
     if (data) {
-        console.log('DEBUG: Se encontró un participante:', data);
+        console.log('DEBUG: Se encontró un participante:', data.id, 'para la campaña:', data.campaign_id);
     } else {
         console.log('DEBUG: No se encontró ningún participante con ese código para este usuario.');
     }
@@ -386,6 +387,8 @@ export async function incrementInfluencerCodeUsage(participantId: string, influe
 }
 
 
+
+    
 
     
 
